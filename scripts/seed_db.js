@@ -103,8 +103,12 @@ async function main() {
   ];
 
   for (const u of users) {
-    await prisma.user.create({ data: u });
-    console.log(`   Created user: ${u.email} (${u.role})`);
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: u,
+      create: u
+    });
+    console.log(`   Configured user: ${u.email} (${u.role})`);
   }
 
   const adminUser = await prisma.user.findUnique({
