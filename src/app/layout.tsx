@@ -7,6 +7,14 @@ import LayoutShell from '@/components/LayoutShell';
 export const metadata: Metadata = {
   title: 'ATHARVA TRAVELS – Finance Management Portal',
   description: 'Enterprise internal finance, vehicle billing, deductions and settlement portal',
+  icons: {
+    icon: [
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    shortcut: '/logo.png',
+    apple: '/apple-icon.png',
+  },
 };
 
 export default async function RootLayout({
