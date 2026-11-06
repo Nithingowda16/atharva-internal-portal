@@ -5,6 +5,7 @@
 [build.environment]
   NODE_VERSION = "20"
   NEXT_TELEMETRY_DISABLED = "1"
+  NPM_FLAGS = "--include=dev"
   # Set PRISMA_MIGRATE to true in Netlify UI if you wish migrations to run on deploy
   PRISMA_MIGRATE = "true"
 
