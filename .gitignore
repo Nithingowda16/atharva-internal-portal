@@ -1,0 +1,52 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Next.js Build Output
+/.next/
+/out/
+/build
+
+# Environment & Secret Variables (NEVER commit secrets to git)
+.env
+.env*.local
+.env.development
+.env.production
+.env.staging
+
+# Local Databases (Production uses persistent PostgreSQL)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+prisma/*.db
+prisma/*.db-journal
+
+# Sensitive Financial Excel Workbooks & Source Spreadsheets
+*.xlsx
+*.xls
+*.xlsm
+excel_sources/
+.user_uploaded/
+storage/
+backups/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
+*.pem
+
+# Stray scratch files
+powershell.bat
+powershell.cmd
+p.$disconnect())
+prisma.$disconnect())
+{
+

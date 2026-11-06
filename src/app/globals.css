@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --apple-bg: #F5F5F7;
+  --apple-card: #FFFFFF;
+  --apple-text: #1D1D1F;
+  --apple-secondary: #86868B;
+  --apple-border: #E5E5EA;
+  --apple-subtle: #F2F2F7;
+  --apple-blue: #007AFF;
+}
+
+html, body {
+  background-color: #F5F5F7;
+  color: #1D1D1F;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force light scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D1D6;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #AEAEB2;
+}
+
+/* Tabular numbers for financial precision */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Apple text selection */
+::selection {
+  background-color: #B3D7FF;
+  color: #1D1D1F;
+}

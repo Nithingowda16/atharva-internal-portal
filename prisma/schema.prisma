@@ -1,0 +1,232 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  name         String
+  passwordHash String
+  role         String          // "SUPER_ADMIN", "FINANCE_MANAGER", "OPERATIONS"
+  permissions  String          // JSON array of strings
+  isAllowed    Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  auditLogs    AuditLog[]
+  versions     RecordVersion[]
+}
+
+model SourceFileArchive {
+  id              String               @id @default(cuid())
+  filename        String
+  fileHash        String
+  fileSizeBytes   Int
+  uploadTimestamp DateTime             @default(now())
+  filePath        String
+  notes           String?
+  cells           SourceWorkbookCell[]
+}
+
+model SourceWorkbookCell {
+  id            Int               @id @default(autoincrement())
+  archiveId     String
+  archive       SourceFileArchive @relation(fields: [archiveId], references: [id], onDelete: Cascade)
+  worksheetName String
+  cellAddress   String
+  rowIndex      Int
+  columnIndex   Int
+  rawValue      String?
+  formulaString String?
+  isRefError    Boolean           @default(false)
+
+  @@index([worksheetName, cellAddress])
+  @@index([isRefError])
+}
+
+model FinancialPeriod {
+  id               String                 @id @default(cuid())
+  monthCode        String                 @unique // e.g. "2026-08", "2026-09"
+  periodName       String                 // "August 2026", "September 2026"
+  financialYear    String                 // "2026-27"
+  startDate        String
+  endDate          String
+  status           String                 @default("Draft") // "Draft", "Approved", "Locked", etc.
+  templateSourceId String?
+  grossBilling     Float                  @default(0)
+  totalDeductions  Float                  @default(0)
+  netPayable       Float                  @default(0)
+  totalPaid        Float                  @default(0)
+  isDeleted        Boolean                @default(false)
+  deletedAt        DateTime?
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  monthlyRecords   VehicleMonthlyRecord[]
+}
+
+model Vehicle {
+  id                 String                 @id @default(cuid())
+  registrationNumber String                 // Can be "KA-UNSPECIFIED-SEC46"
+  vehicleType        String                 @default("Vehicle - 4-Seater")
+  isActive           Boolean                @default(true)
+  ownerName          String?
+  contactNumber      String?
+  bankAccountMasked  String?
+  bankName           String?
+  ifscCode           String?
+  notes              String?
+  isDeleted          Boolean                @default(false)
+  deletedAt          DateTime?
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  monthlyRecords     VehicleMonthlyRecord[]
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  code        String?
+  category    String?
+  defaultRate Float?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VehicleMonthlyRecord {
+  id             String                @id @default(cuid())
+  periodId       String
+  period         FinancialPeriod       @relation(fields: [periodId], references: [id], onDelete: Cascade)
+  vehicleId      String
+  vehicle        Vehicle               @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  sectionIndex   Int                   // 1 to 46
+  calcHeader     String?
+  periodLabel    String?
+  grossBilling   Float                 @default(0)
+  totalDeductions Float                @default(0)
+  netPayable     Float                 @default(0)
+  amountPaid     Float                 @default(0)
+  paymentStatus  String                @default("Draft") // "Paid", "Partially Paid", "HOLD", "WF", "No Account", "Draft"
+  paymentDate    String?
+  bankDetails    String?
+  bankRemarks    String?
+  hasRefErrors   Boolean               @default(false)
+  refErrorCount  Int                   @default(0)
+  remarks        String?
+  isDeleted      Boolean               @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  billingLines   BillingLine[]
+  adjustments    FinancialAdjustment[]
+  payments       PaymentTransaction[]
+  versions       RecordVersion[]
+
+  @@index([periodId, sectionIndex])
+  @@index([vehicleId])
+}
+
+model BillingLine {
+  id             String               @id @default(cuid())
+  recordId       String
+  record         VehicleMonthlyRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  sourceRow      Int?
+  companyName    String
+  kmOrTrips      Float?
+  kmFormula      String?
+  applicableRate Float?
+  rateFormula    String?
+  billingAmount  Float                @default(0)
+  amountFormula  String?
+  lineOrder      Int                  @default(0)
+  isDeleted      Boolean              @default(false)
+
+  @@index([recordId])
+}
+
+model FinancialAdjustment {
+  id               String               @id @default(cuid())
+  recordId         String
+  record           VehicleMonthlyRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  sourceRow        Int?
+  category         String
+  adjustmentType   String               @default("DEDUCTION") // "DEDUCTION" or "ADDITION"
+  amount           Float                @default(0)
+  formulaString    String?
+  isPostSettlement Boolean              @default(false)
+  meta1            String?
+  meta2            String?
+  notes            String?
+  isDeleted        Boolean              @default(false)
+
+  @@index([recordId])
+}
+
+model PaymentTransaction {
+  id              String               @id @default(cuid())
+  recordId        String
+  record          VehicleMonthlyRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  amount          Float
+  paymentDate     String
+  paymentMode     String               @default("BANK_TRANSFER")
+  referenceNumber String?
+  bankName        String?
+  remarks         String?
+  recordedBy      String?
+  createdAt       DateTime             @default(now())
+  isDeleted       Boolean              @default(false)
+
+  @@index([recordId])
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userEmail     String
+  action        String   // "CREATE", "UPDATE", "DELETE", "RESTORE", "REVERT", "APPROVE", "CLONE_MONTH", "IMPORT", "EXPORT", "LOGIN", "LOGOUT"
+  module        String   // "MONTHLY_FINANCE", "VEHICLES", "BILLING", "ADJUSTMENTS", "PAYMENTS", "USERS", "IMPORT"
+  entityType    String
+  entityId      String?
+  previousState String?  // JSON string
+  newState      String?  // JSON string
+  reason        String?
+  ipAddress     String?
+  createdAt     DateTime @default(now())
+
+  @@index([module, action])
+  @@index([createdAt])
+}
+
+model RecordVersion {
+  id            String               @id @default(cuid())
+  recordId      String
+  record        VehicleMonthlyRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  versionNumber Int
+  snapshotData  String               // JSON string
+  changeReason  String?
+  createdById   String?
+  createdBy     User?                @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt     DateTime             @default(now())
+
+  @@index([recordId, versionNumber])
+}
+
+model RecycleBinItem {
+  id             String   @id @default(cuid())
+  entityType     String
+  entityId       String
+  displayName    String
+  deletedByEmail String
+  deletedAt      DateTime @default(now())
+  snapshotData   String
+  restoreStatus  String   @default("DELETED") // "DELETED", "RESTORED", "PURGED"
+
+  @@index([restoreStatus])
+}
+

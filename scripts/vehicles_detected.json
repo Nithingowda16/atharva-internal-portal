@@ -1,0 +1,926 @@
+{
+  "august": [
+    {
+      "index": 1,
+      "calc_idx": 1,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 6,
+      "col_letter": "F",
+      "reg_number": "KA03AQ 5313",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 2,
+      "calc_idx": 2,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 11,
+      "col_letter": "K",
+      "reg_number": "KA04AE 7943",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 3,
+      "calc_idx": 3,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 16,
+      "col_letter": "P",
+      "reg_number": "KA04AD 8814",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 4,
+      "calc_idx": 4,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 21,
+      "col_letter": "U",
+      "reg_number": "KA05AQ 2830",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 5,
+      "calc_idx": 5,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 26,
+      "col_letter": "Z",
+      "reg_number": "KA41D 6174",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 6,
+      "calc_idx": 6,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 31,
+      "col_letter": "AE",
+      "reg_number": "KA50B 5573",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 7,
+      "calc_idx": 7,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 36,
+      "col_letter": "AJ",
+      "reg_number": "KA7 12291",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 8,
+      "calc_idx": 8,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 41,
+      "col_letter": "AO",
+      "reg_number": "KA03AQ 4724",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 9,
+      "calc_idx": 9,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 46,
+      "col_letter": "AT",
+      "reg_number": "KA51AN 0511",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 10,
+      "calc_idx": 10,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 51,
+      "col_letter": "AY",
+      "reg_number": "KA52B 7020",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 11,
+      "calc_idx": 11,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 56,
+      "col_letter": "BD",
+      "reg_number": "KA41A 7096",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 12,
+      "calc_idx": 12,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 61,
+      "col_letter": "BI",
+      "reg_number": "KA05AR 7724",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 13,
+      "calc_idx": 13,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 66,
+      "col_letter": "BN",
+      "reg_number": "KA67 3055",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 14,
+      "calc_idx": 14,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 71,
+      "col_letter": "BS",
+      "reg_number": "KA03AK 8640",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 15,
+      "calc_idx": 15,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 76,
+      "col_letter": "BX",
+      "reg_number": "KA04AF 0013",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 16,
+      "calc_idx": 16,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 81,
+      "col_letter": "CC",
+      "reg_number": "KA04AF 4186",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 17,
+      "calc_idx": 17,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 86,
+      "col_letter": "CH",
+      "reg_number": "KA05AL 7794",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 18,
+      "calc_idx": 18,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 91,
+      "col_letter": "CM",
+      "reg_number": "KA05AQ 9062",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 19,
+      "calc_idx": 19,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 96,
+      "col_letter": "CR",
+      "reg_number": "KA05AR 6925",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 20,
+      "calc_idx": 20,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 101,
+      "col_letter": "CW",
+      "reg_number": "KA41AA 0115",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 21,
+      "calc_idx": 21,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 106,
+      "col_letter": "DB",
+      "reg_number": "KA41D 6174",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 22,
+      "calc_idx": 22,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 111,
+      "col_letter": "DG",
+      "reg_number": "KA50C 1280",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 23,
+      "calc_idx": 23,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 116,
+      "col_letter": "DL",
+      "reg_number": "KA51AL 2674",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 24,
+      "calc_idx": 24,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 121,
+      "col_letter": "DQ",
+      "reg_number": "KA02AN 4200",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 25,
+      "calc_idx": 25,
+      "calc_hdr": "SEP-26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 126,
+      "col_letter": "DV",
+      "reg_number": "KA03AP 6182",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 26,
+      "calc_idx": 26,
+      "calc_hdr": "SEP-26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 131,
+      "col_letter": "EA",
+      "reg_number": "KA03AP 6188",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 27,
+      "calc_idx": 27,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 136,
+      "col_letter": "EF",
+      "reg_number": "KA04AF 0839",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 28,
+      "calc_idx": 28,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 141,
+      "col_letter": "EK",
+      "reg_number": "KA25AC 3617",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 29,
+      "calc_idx": 29,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 146,
+      "col_letter": "EP",
+      "reg_number": "KA40B 9935",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 30,
+      "calc_idx": 30,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 151,
+      "col_letter": "EU",
+      "reg_number": "KA50B 8946",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 31,
+      "calc_idx": 31,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 156,
+      "col_letter": "EZ",
+      "reg_number": "KA50C 2924",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 32,
+      "calc_idx": 32,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 161,
+      "col_letter": "FE",
+      "reg_number": "KA51AK 8938",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 33,
+      "calc_idx": 33,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 166,
+      "col_letter": "FJ",
+      "reg_number": "KA51AL 1277",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 34,
+      "calc_idx": 34,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 171,
+      "col_letter": "FO",
+      "reg_number": "KA51AM 6524",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 35,
+      "calc_idx": 35,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 176,
+      "col_letter": "FT",
+      "reg_number": "KA53AC 6720",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 36,
+      "calc_idx": 36,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 181,
+      "col_letter": "FY",
+      "reg_number": "KA04AD 4861",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 37,
+      "calc_idx": 37,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 186,
+      "col_letter": "GD",
+      "reg_number": "KA41AA 3471",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 38,
+      "calc_idx": 38,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 191,
+      "col_letter": "GI",
+      "reg_number": "KA67 2889",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 39,
+      "calc_idx": 39,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 196,
+      "col_letter": "GN",
+      "reg_number": "KA03AP 5052",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 40,
+      "calc_idx": 40,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 201,
+      "col_letter": "GS",
+      "reg_number": "KA03AQ 7790",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 41,
+      "calc_idx": 41,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 206,
+      "col_letter": "GX",
+      "reg_number": "KA04B 4187",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 42,
+      "calc_idx": 42,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 211,
+      "col_letter": "HC",
+      "reg_number": "KA11C 3550",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 43,
+      "calc_idx": 43,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 216,
+      "col_letter": "HH",
+      "reg_number": "KA42C 0628",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 44,
+      "calc_idx": 44,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 221,
+      "col_letter": "HM",
+      "reg_number": "KA42C 1195",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 45,
+      "calc_idx": 45,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 226,
+      "col_letter": "HR",
+      "reg_number": "KA50C 2116",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 46,
+      "calc_idx": 46,
+      "calc_hdr": "AUG-26  Payment Calculation",
+      "period": "Payment for 01st AUG  to 31st  AUG 2026",
+      "col_start": 231,
+      "col_letter": "HW",
+      "reg_number": null,
+      "vehicle_type": "Vehicle - 4-Seater"
+    }
+  ],
+  "september": [
+    {
+      "index": 1,
+      "calc_idx": 1,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 6,
+      "col_letter": "F",
+      "reg_number": "KA51AN0511",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 2,
+      "calc_idx": 2,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 11,
+      "col_letter": "K",
+      "reg_number": "KA52B7020",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 3,
+      "calc_idx": 3,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 16,
+      "col_letter": "P",
+      "reg_number": "KA53AB6411",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 4,
+      "calc_idx": 4,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 21,
+      "col_letter": "U",
+      "reg_number": "KA04AE7943",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 5,
+      "calc_idx": 5,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 26,
+      "col_letter": "Z",
+      "reg_number": "KA41D8162",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 6,
+      "calc_idx": 6,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 31,
+      "col_letter": "AE",
+      "reg_number": "KA712291",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 7,
+      "calc_idx": 7,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 36,
+      "col_letter": "AJ",
+      "reg_number": "KA50C2924",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 8,
+      "calc_idx": 8,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 41,
+      "col_letter": "AO",
+      "reg_number": "KA03AB6182",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 9,
+      "calc_idx": 9,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 46,
+      "col_letter": "AT",
+      "reg_number": "KA03AP6188",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 10,
+      "calc_idx": 10,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 51,
+      "col_letter": "AY",
+      "reg_number": "KA03AQ7790",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 11,
+      "calc_idx": 11,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 56,
+      "col_letter": "BD",
+      "reg_number": "KA11C3550",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 12,
+      "calc_idx": 12,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 61,
+      "col_letter": "BI",
+      "reg_number": "KA41D6174",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 13,
+      "calc_idx": 13,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 66,
+      "col_letter": "BN",
+      "reg_number": "KA42C0628",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 14,
+      "calc_idx": 14,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 71,
+      "col_letter": "BS",
+      "reg_number": "KA42C1195",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 15,
+      "calc_idx": 15,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 76,
+      "col_letter": "BX",
+      "reg_number": "KA50C2116",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 16,
+      "calc_idx": 16,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 81,
+      "col_letter": "CC",
+      "reg_number": "KA51AM7439",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 17,
+      "calc_idx": 17,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 86,
+      "col_letter": "CH",
+      "reg_number": "KA51AN0181",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 18,
+      "calc_idx": 18,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 91,
+      "col_letter": "CM",
+      "reg_number": "KA04AF0839",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 19,
+      "calc_idx": 19,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 96,
+      "col_letter": "CR",
+      "reg_number": "KA05AR7724",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 20,
+      "calc_idx": 20,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 101,
+      "col_letter": "CW",
+      "reg_number": "KA15B1329",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 21,
+      "calc_idx": 21,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 106,
+      "col_letter": "DB",
+      "reg_number": "KA25AC3617",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 22,
+      "calc_idx": 22,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 111,
+      "col_letter": "DG",
+      "reg_number": "KA25AC3692",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 23,
+      "calc_idx": 23,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 116,
+      "col_letter": "DL",
+      "reg_number": "KA50B8946",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 24,
+      "calc_idx": 24,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 121,
+      "col_letter": "DQ",
+      "reg_number": "KA50B9163",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 25,
+      "calc_idx": 25,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 126,
+      "col_letter": "DV",
+      "reg_number": "KA51AK8938",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 26,
+      "calc_idx": 26,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 131,
+      "col_letter": "EA",
+      "reg_number": "KA51AM6524",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 27,
+      "calc_idx": 27,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 136,
+      "col_letter": "EF",
+      "reg_number": "KA53AC6720",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 28,
+      "calc_idx": 28,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 141,
+      "col_letter": "EK",
+      "reg_number": "KA673055",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 29,
+      "calc_idx": 29,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 146,
+      "col_letter": "EP",
+      "reg_number": "KA04AD4861",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 30,
+      "calc_idx": 30,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 151,
+      "col_letter": "EU",
+      "reg_number": "KA05AR6925",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 31,
+      "calc_idx": 31,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 156,
+      "col_letter": "EZ",
+      "reg_number": "KA41AA3471",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 32,
+      "calc_idx": 32,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 161,
+      "col_letter": "FE",
+      "reg_number": "KA672889",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 33,
+      "calc_idx": 33,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 166,
+      "col_letter": "FJ",
+      "reg_number": "KA05AL7794",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 34,
+      "calc_idx": 34,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 171,
+      "col_letter": "FO",
+      "reg_number": "KA04AF0013",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 35,
+      "calc_idx": 35,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 176,
+      "col_letter": "FT",
+      "reg_number": "KA04AD8814",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 36,
+      "calc_idx": 36,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 181,
+      "col_letter": "FY",
+      "reg_number": "KA03AP8768",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 37,
+      "calc_idx": 37,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 186,
+      "col_letter": "GD",
+      "reg_number": "KA51AM3491",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 38,
+      "calc_idx": 38,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 191,
+      "col_letter": "GI",
+      "reg_number": "KA51AL2674",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 39,
+      "calc_idx": 39,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 196,
+      "col_letter": "GN",
+      "reg_number": "KA03AK8640",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 40,
+      "calc_idx": 40,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 201,
+      "col_letter": "GS",
+      "reg_number": "KA04AF4186",
+      "vehicle_type": "Vehicle - 6-Seater"
+    },
+    {
+      "index": 41,
+      "calc_idx": 41,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 206,
+      "col_letter": "GX",
+      "reg_number": "KA41AA0115",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 42,
+      "calc_idx": 42,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 211,
+      "col_letter": "HC",
+      "reg_number": "KA01AP6754",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 43,
+      "calc_idx": 43,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 216,
+      "col_letter": "HH",
+      "reg_number": "KA03AQ5313",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 44,
+      "calc_idx": 44,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 221,
+      "col_letter": "HM",
+      "reg_number": "KA05AP4740",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 45,
+      "calc_idx": 45,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 226,
+      "col_letter": "HR",
+      "reg_number": "KA05AQ2830",
+      "vehicle_type": "Vehicle - 4-Seater"
+    },
+    {
+      "index": 46,
+      "calc_idx": 46,
+      "calc_hdr": "SEP26  Payment Calculation",
+      "period": "Payment for 01st SEP  to 30th  SEP 2026",
+      "col_start": 231,
+      "col_letter": "HW",
+      "reg_number": "KA50B5573",
+      "vehicle_type": "Vehicle - 4-Seater"
+    }
+  ]
+}

@@ -1,0 +1,1212 @@
+{
+  "6182 & 6188": {
+    "sheet_name": "6182 & 6188",
+    "vehicle_sections": [
+      {
+        "start_col_idx": 6,
+        "col_letter": "F",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AQ 5313",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 11,
+        "col_letter": "K",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AE 7943",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 16,
+        "col_letter": "P",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AD 8814",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 21,
+        "col_letter": "U",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AQ 2830",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 26,
+        "col_letter": "Z",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41D 6174",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 31,
+        "col_letter": "AE",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50B 5573",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 36,
+        "col_letter": "AJ",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA7 12291",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 41,
+        "col_letter": "AO",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AQ 4724",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 46,
+        "col_letter": "AT",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AN 0511",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 51,
+        "col_letter": "AY",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA52B 7020",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 56,
+        "col_letter": "BD",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41A 7096",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 61,
+        "col_letter": "BI",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AR 7724",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 66,
+        "col_letter": "BN",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA67 3055",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 71,
+        "col_letter": "BS",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AK 8640",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 76,
+        "col_letter": "BX",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF 0013",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 81,
+        "col_letter": "CC",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF 4186",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 86,
+        "col_letter": "CH",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AL 7794",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 91,
+        "col_letter": "CM",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AQ 9062",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 96,
+        "col_letter": "CR",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AR 6925",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 101,
+        "col_letter": "CW",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41AA 0115",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 106,
+        "col_letter": "DB",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41D 6174",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 111,
+        "col_letter": "DG",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50C 1280",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 116,
+        "col_letter": "DL",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AL 2674",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 121,
+        "col_letter": "DQ",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA02AN 4200",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 126,
+        "col_letter": "DV",
+        "row4_calc": "SEP-26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AP 6182",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 131,
+        "col_letter": "EA",
+        "row4_calc": "SEP-26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AP 6188",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 136,
+        "col_letter": "EF",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF 0839",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 141,
+        "col_letter": "EK",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA25AC 3617",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 146,
+        "col_letter": "EP",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA40B 9935",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 151,
+        "col_letter": "EU",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50B 8946",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 156,
+        "col_letter": "EZ",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50C 2924",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 161,
+        "col_letter": "FE",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AK 8938",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 166,
+        "col_letter": "FJ",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AL 1277",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 171,
+        "col_letter": "FO",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AM 6524",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 176,
+        "col_letter": "FT",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA53AC 6720",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 181,
+        "col_letter": "FY",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AD 4861",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 186,
+        "col_letter": "GD",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41AA 3471",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 191,
+        "col_letter": "GI",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA67 2889",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 196,
+        "col_letter": "GN",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AP 5052",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 201,
+        "col_letter": "GS",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AQ 7790",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 206,
+        "col_letter": "GX",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04B 4187",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 211,
+        "col_letter": "HC",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA11C 3550",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 216,
+        "col_letter": "HH",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA42C 0628",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 221,
+        "col_letter": "HM",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA42C 1195",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 226,
+        "col_letter": "HR",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50C 2116",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 231,
+        "col_letter": "HW",
+        "row4_calc": "AUG-26  Payment Calculation",
+        "row5_period": "Payment for 01st AUG  to 31st  AUG 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": null,
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      }
+    ],
+    "errors": [
+      {
+        "cell": "C11",
+        "row": 11,
+        "col": 3,
+        "formula": "=B11+#REF!+#REF!+#REF!",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "AK16",
+        "row": 16,
+        "col": 37,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "AP16",
+        "row": 16,
+        "col": 42,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "AU16",
+        "row": 16,
+        "col": 47,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "AZ16",
+        "row": 16,
+        "col": 52,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "BE16",
+        "row": 16,
+        "col": 57,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "BJ16",
+        "row": 16,
+        "col": 62,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "BO16",
+        "row": 16,
+        "col": 67,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "BT16",
+        "row": 16,
+        "col": 72,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "BY16",
+        "row": 16,
+        "col": 77,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "CD16",
+        "row": 16,
+        "col": 82,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "CI16",
+        "row": 16,
+        "col": 87,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "CN16",
+        "row": 16,
+        "col": 92,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "CS16",
+        "row": 16,
+        "col": 97,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "CX16",
+        "row": 16,
+        "col": 102,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "DC16",
+        "row": 16,
+        "col": 107,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "DH16",
+        "row": 16,
+        "col": 112,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "DM16",
+        "row": 16,
+        "col": 117,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "DR16",
+        "row": 16,
+        "col": 122,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "EG16",
+        "row": 16,
+        "col": 137,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "EL16",
+        "row": 16,
+        "col": 142,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "EQ16",
+        "row": 16,
+        "col": 147,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "EV16",
+        "row": 16,
+        "col": 152,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FA16",
+        "row": 16,
+        "col": 157,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FF16",
+        "row": 16,
+        "col": 162,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FK16",
+        "row": 16,
+        "col": 167,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FP16",
+        "row": 16,
+        "col": 172,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FU16",
+        "row": 16,
+        "col": 177,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "FZ16",
+        "row": 16,
+        "col": 182,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "GE16",
+        "row": 16,
+        "col": 187,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "GJ16",
+        "row": 16,
+        "col": 192,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "GO16",
+        "row": 16,
+        "col": 197,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "GT16",
+        "row": 16,
+        "col": 202,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "GY16",
+        "row": 16,
+        "col": 207,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "HD16",
+        "row": 16,
+        "col": 212,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "HI16",
+        "row": 16,
+        "col": 217,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "HN16",
+        "row": 16,
+        "col": 222,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "HS16",
+        "row": 16,
+        "col": 227,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      },
+      {
+        "cell": "HX16",
+        "row": 16,
+        "col": 232,
+        "formula": "=SUM(#REF!)",
+        "calculated_value": "#REF!"
+      }
+    ],
+    "max_row": 45,
+    "max_col": 234
+  },
+  "Pay slip": {
+    "sheet_name": "Pay slip",
+    "vehicle_sections": [
+      {
+        "start_col_idx": 6,
+        "col_letter": "F",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AN0511",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 11,
+        "col_letter": "K",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA52B7020",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 16,
+        "col_letter": "P",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA53AB6411",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 21,
+        "col_letter": "U",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AE7943",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 26,
+        "col_letter": "Z",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41D8162",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 31,
+        "col_letter": "AE",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA712291",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 36,
+        "col_letter": "AJ",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50C2924",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 41,
+        "col_letter": "AO",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AB6182",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 46,
+        "col_letter": "AT",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AP6188",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 51,
+        "col_letter": "AY",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AQ7790",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 56,
+        "col_letter": "BD",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA11C3550",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 61,
+        "col_letter": "BI",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41D6174",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 66,
+        "col_letter": "BN",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA42C0628",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 71,
+        "col_letter": "BS",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA42C1195",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 76,
+        "col_letter": "BX",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50C2116",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 81,
+        "col_letter": "CC",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AM7439",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 86,
+        "col_letter": "CH",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AN0181",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 91,
+        "col_letter": "CM",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF0839",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 96,
+        "col_letter": "CR",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AR7724",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 101,
+        "col_letter": "CW",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA15B1329",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 106,
+        "col_letter": "DB",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA25AC3617",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 111,
+        "col_letter": "DG",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA25AC3692",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 116,
+        "col_letter": "DL",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50B8946",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 121,
+        "col_letter": "DQ",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50B9163",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 126,
+        "col_letter": "DV",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AK8938",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 131,
+        "col_letter": "EA",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AM6524",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 136,
+        "col_letter": "EF",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA53AC6720",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 141,
+        "col_letter": "EK",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA673055",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 146,
+        "col_letter": "EP",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AD4861",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 151,
+        "col_letter": "EU",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AR6925",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 156,
+        "col_letter": "EZ",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41AA3471",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 161,
+        "col_letter": "FE",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA672889",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 166,
+        "col_letter": "FJ",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AL7794",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 171,
+        "col_letter": "FO",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF0013",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 176,
+        "col_letter": "FT",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AD8814",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 181,
+        "col_letter": "FY",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AP8768",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 186,
+        "col_letter": "GD",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AM3491",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 191,
+        "col_letter": "GI",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA51AL2674",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 196,
+        "col_letter": "GN",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AK8640",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 201,
+        "col_letter": "GS",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA04AF4186",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 6-Seater"
+      },
+      {
+        "start_col_idx": 206,
+        "col_letter": "GX",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA41AA0115",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 211,
+        "col_letter": "HC",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA01AP6754",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 216,
+        "col_letter": "HH",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA03AQ5313",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 221,
+        "col_letter": "HM",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AP4740",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 226,
+        "col_letter": "HR",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA05AQ2830",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      },
+      {
+        "start_col_idx": 231,
+        "col_letter": "HW",
+        "row4_calc": "SEP26  Payment Calculation",
+        "row5_period": "Payment for 01st SEP  to 30th  SEP 2026",
+        "row6_title": "ATHARVA TRAVELS",
+        "row7_vehicle_no": "KA50B5573",
+        "row8_company_hdr": "Company",
+        "row9_vehicle_type": "Vehicle - 4-Seater"
+      }
+    ],
+    "errors": [],
+    "max_row": 77,
+    "max_col": 234
+  }
+}
