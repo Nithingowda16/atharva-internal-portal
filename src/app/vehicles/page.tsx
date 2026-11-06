@@ -211,7 +211,7 @@ export default function VehiclesPage() {
             className="px-5 py-2.5 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold flex items-center space-x-1.5 shadow-apple-btn transition-all active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Add Vehicle</span>
+            <span>Add Vehicle</span>
           </button>
         </div>
       </div>

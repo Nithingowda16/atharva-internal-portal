@@ -218,7 +218,7 @@ export default function MonthlyFinancePage() {
                 className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#EBF5FF] hover:bg-[#D9ECFF] text-[#007AFF] text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>+ Add Vehicle</span>
+                <span>Add Vehicle</span>
               </button>
 
               <button
@@ -256,7 +256,7 @@ export default function MonthlyFinancePage() {
             className="px-5 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium transition-all duration-150 flex items-center space-x-1.5 shadow-apple-btn active:scale-[0.98]"
           >
             <Plus className="w-4 h-4" />
-            <span>+ Create New Month</span>
+            <span>Create New Month</span>
           </button>
         </div>
       </div>
@@ -404,7 +404,7 @@ export default function MonthlyFinancePage() {
                           className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium shadow-apple-btn inline-flex items-center space-x-1.5 transition-all"
                         >
                           <Plus className="w-3.5 h-3.5" />
-                          <span>+ Add First Vehicle</span>
+                          <span>Add First Vehicle</span>
                         </button>
                       )}
                     </div>
