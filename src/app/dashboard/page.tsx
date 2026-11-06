@@ -76,7 +76,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6 max-w-7xl mx-auto animate-pulse">
         <div className="h-44 bg-[#FFFFFF] rounded-[24px] border border-[#E5E5EA]" />
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <div key={i} className="h-28 bg-[#FFFFFF] rounded-[22px] border border-[#E5E5EA]" />
           ))}
@@ -260,7 +260,7 @@ export default function DashboardPage() {
       </div>
 
       {/* 8 Clean Apple Financial KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Monthly Billing */}
         <div className="bg-[#FFFFFF] p-5 rounded-[22px] border border-[#E5E5EA] shadow-apple-card space-y-2">
           <div className="flex items-center justify-between">

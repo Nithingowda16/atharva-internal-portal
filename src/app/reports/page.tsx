@@ -176,7 +176,7 @@ export default function ReportsPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-[#F2F2F7] p-4 rounded-[18px] border border-[#E5E5EA]">
                 <p className="text-[11px] text-[#86868B] font-medium">Populated Cells Preserved</p>
                 <p className="text-xl font-bold text-[#1D1D1F] tabular-nums mt-1">

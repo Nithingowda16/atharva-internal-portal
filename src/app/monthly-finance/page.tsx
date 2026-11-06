@@ -279,7 +279,7 @@ export default function MonthlyFinancePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 pt-1">
             <div className="p-4 rounded-2xl bg-[#F2F2F7]/60 border border-[#E5E5EA]">
               <p className="text-xs text-[#86868B] font-medium">Gross Billing</p>
               <p className="text-xl font-bold text-[#1D1D1F] mt-0.5 tabular-nums">

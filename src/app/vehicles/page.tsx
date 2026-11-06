@@ -355,7 +355,7 @@ export default function VehiclesPage() {
             </div>
 
             <div className="p-6 overflow-y-auto space-y-4">
-              <div className="grid grid-cols-4 gap-3 bg-[#F2F2F7] p-4 rounded-[18px] border border-[#E5E5EA] text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F2F2F7] p-4 rounded-[18px] border border-[#E5E5EA] text-xs">
                 <div>
                   <span className="text-[#86868B] text-[11px] font-medium">Total Billing:</span>
                   <p className="font-bold text-[#1D1D1F] tabular-nums text-sm mt-0.5">₹{viewHistoryVehicle.totalBilling.toLocaleString('en-IN')}</p>
