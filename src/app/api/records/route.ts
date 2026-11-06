@@ -5,6 +5,9 @@ import { recalculateVehicleRecord } from '@/lib/calculationEngine';
 import { createRecordSnapshot } from '@/lib/versioning';
 import { logAudit } from '@/lib/audit';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,9 +36,9 @@ export async function GET(req: NextRequest) {
     include: {
       vehicle: true,
       period: true,
-      billingLines: { where: { isDeleted: false } },
-      adjustments: { where: { isDeleted: false } },
-      payments: { where: { isDeleted: false } },
+      billingLines: { where: { isDeleted: false }, orderBy: { lineOrder: 'asc' } },
+      adjustments: { where: { isDeleted: false }, orderBy: { sourceRow: 'asc' } },
+      payments: { where: { isDeleted: false }, orderBy: { createdAt: 'desc' } },
       _count: { select: { versions: true } },
     },
     orderBy: [{ period: { startDate: 'desc' } }, { sectionIndex: 'asc' }],
@@ -62,12 +65,12 @@ export async function POST(req: NextRequest) {
 
     // Find or create vehicle master
     let vehicle = await prisma.vehicle.findFirst({
-      where: { registrationNumber: registrationNumber.trim() },
+      where: { registrationNumber: registrationNumber.trim().toUpperCase() },
     });
     if (!vehicle) {
       vehicle = await prisma.vehicle.create({
         data: {
-          registrationNumber: registrationNumber.trim(),
+          registrationNumber: registrationNumber.trim().toUpperCase(),
           vehicleType: vehicleType || 'Vehicle - 4-Seater',
           isActive: true,
         },
@@ -113,16 +116,20 @@ export async function POST(req: NextRequest) {
     }
 
     if (Array.isArray(adjustments)) {
-      for (const adj of adjustments) {
-        if (adj.category) {
-          const amt = parseFloat(adj.amount) || 0;
+      for (let i = 0; i < adjustments.length; i++) {
+        const adj = adjustments[i];
+        if (adj.category && adj.category.trim() !== '') {
+          const isDeduction = adj.adjustmentType ? adj.adjustmentType === 'DEDUCTION' : true;
+          const rawAmt = Math.abs(parseFloat(adj.amount) || 0);
+          const amt = isDeduction ? -rawAmt : rawAmt;
           await prisma.financialAdjustment.create({
             data: {
               recordId: record.id,
-              category: adj.category,
-              adjustmentType: amt < 0 ? 'DEDUCTION' : 'ADDITION',
+              category: adj.category.trim(),
+              adjustmentType: isDeduction ? 'DEDUCTION' : 'ADDITION',
               amount: amt,
               notes: adj.notes || null,
+              sourceRow: i + 1,
             },
           });
         }
@@ -138,7 +145,7 @@ export async function POST(req: NextRequest) {
       module: 'MONTHLY_FINANCE',
       entityType: 'VehicleMonthlyRecord',
       entityId: record.id,
-      newState: { registrationNumber, section: nextSection },
+      newState: { registrationNumber: vehicle.registrationNumber, section: nextSection },
       reason: 'Added new vehicle record to monthly finance',
     });
 
@@ -147,8 +154,9 @@ export async function POST(req: NextRequest) {
       include: {
         vehicle: true,
         period: true,
-        billingLines: true,
-        adjustments: true,
+        billingLines: { where: { isDeleted: false } },
+        adjustments: { where: { isDeleted: false } },
+        payments: { where: { isDeleted: false } },
       },
     });
 
@@ -157,4 +165,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message || 'Failed to create record' }, { status: 500 });
   }
 }
-

@@ -6,6 +6,9 @@ import { createRecordSnapshot } from '@/lib/versioning';
 import { softDeleteRecord } from '@/lib/softDelete';
 import { logAudit } from '@/lib/audit';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -53,7 +56,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     const prev = await prisma.vehicleMonthlyRecord.findUnique({
       where: { id: params.id },
-      include: { billingLines: true, adjustments: true },
+      include: {
+        billingLines: { where: { isDeleted: false } },
+        adjustments: { where: { isDeleted: false } },
+      },
     });
     if (!prev) return NextResponse.json({ error: 'Record not found' }, { status: 404 });
 
@@ -74,32 +80,49 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // 3. Update billing lines if provided
     if (Array.isArray(billingLines)) {
-      for (const bl of billingLines) {
-        if (bl.id) {
-          const km = bl.kmOrTrips !== null && bl.kmOrTrips !== undefined ? parseFloat(bl.kmOrTrips) : null;
-          const rate = bl.applicableRate !== null && bl.applicableRate !== undefined ? parseFloat(bl.applicableRate) : null;
-          const amt = km !== null && rate !== null ? km * rate : (parseFloat(bl.billingAmount) || 0);
+      // Collect valid existing IDs that remain in the client payload
+      const activeBillingIds = billingLines
+        .filter((bl) => bl.id && typeof bl.id === 'string' && bl.id.trim() !== '')
+        .map((bl) => bl.id.trim());
 
+      // Soft-delete any existing billing lines that were removed by the user in the UI
+      await prisma.billingLine.updateMany({
+        where: {
+          recordId: params.id,
+          id: { notIn: activeBillingIds },
+          isDeleted: false,
+        },
+        data: { isDeleted: true },
+      });
+
+      // Update remaining or create new billing lines
+      for (let i = 0; i < billingLines.length; i++) {
+        const bl = billingLines[i];
+        const km = bl.kmOrTrips !== null && bl.kmOrTrips !== undefined && bl.kmOrTrips !== '' ? parseFloat(bl.kmOrTrips) : null;
+        const rate = bl.applicableRate !== null && bl.applicableRate !== undefined && bl.applicableRate !== '' ? parseFloat(bl.applicableRate) : null;
+        const amt = km !== null && rate !== null ? km * rate : (parseFloat(bl.billingAmount) || 0);
+
+        if (bl.id && typeof bl.id === 'string' && bl.id.trim() !== '') {
           await prisma.billingLine.update({
             where: { id: bl.id },
             data: {
-              companyName: bl.companyName,
+              companyName: bl.companyName || '',
               kmOrTrips: km,
               applicableRate: rate,
               billingAmount: amt,
+              lineOrder: i + 1,
+              isDeleted: false,
             },
           });
         } else if (bl.companyName) {
-          // New billing line
-          const km = parseFloat(bl.kmOrTrips) || 0;
-          const rate = parseFloat(bl.applicableRate) || 0;
           await prisma.billingLine.create({
             data: {
               recordId: params.id,
               companyName: bl.companyName,
               kmOrTrips: km,
               applicableRate: rate,
-              billingAmount: km * rate,
+              billingAmount: amt,
+              lineOrder: i + 1,
             },
           });
         }
@@ -108,28 +131,65 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // 4. Update adjustments if provided
     if (Array.isArray(adjustments)) {
-      for (const adj of adjustments) {
-        if (adj.id) {
-          const amt = parseFloat(adj.amount) || 0;
+      // Collect valid existing IDs that remain in the client payload
+      const activeAdjustmentIds = adjustments
+        .filter((adj) => adj.id && typeof adj.id === 'string' && adj.id.trim() !== '')
+        .map((adj) => adj.id.trim());
+
+      // Soft-delete any existing adjustments that were deleted by the user in the UI
+      await prisma.financialAdjustment.updateMany({
+        where: {
+          recordId: params.id,
+          id: { notIn: activeAdjustmentIds },
+          isDeleted: false,
+        },
+        data: { isDeleted: true },
+      });
+
+      // Update remaining or create new adjustments
+      for (let i = 0; i < adjustments.length; i++) {
+        const adj = adjustments[i];
+        if (!adj.category || adj.category.trim() === '') continue;
+
+        // Determine adjustmentType & signed amount:
+        // DEDUCTION: amount is negative in DB (-Math.abs)
+        // ADDITION: amount is positive in DB (+Math.abs)
+        let isDeduction = true;
+        if (adj.adjustmentType) {
+          isDeduction = adj.adjustmentType === 'DEDUCTION';
+        } else {
+          const cat = (adj.category || '').toLowerCase();
+          if (cat.includes('bonus') || cat.includes('incentive') || cat.includes('addition') || cat.includes('reimbursement')) {
+            isDeduction = false;
+          } else {
+            isDeduction = true;
+          }
+        }
+
+        const rawVal = Math.abs(parseFloat(adj.amount) || 0);
+        const signedAmount = isDeduction ? -rawVal : rawVal;
+        const finalType = isDeduction ? 'DEDUCTION' : 'ADDITION';
+
+        if (adj.id && typeof adj.id === 'string' && adj.id.trim() !== '') {
           await prisma.financialAdjustment.update({
             where: { id: adj.id },
             data: {
-              category: adj.category,
-              amount: amt,
-              adjustmentType: amt < 0 ? 'DEDUCTION' : 'ADDITION',
-              notes: adj.notes,
+              category: adj.category.trim(),
+              amount: signedAmount,
+              adjustmentType: finalType,
+              notes: adj.notes || null,
+              isDeleted: false,
             },
           });
-        } else if (adj.category) {
-          // New adjustment
-          const amt = parseFloat(adj.amount) || 0;
+        } else {
           await prisma.financialAdjustment.create({
             data: {
               recordId: params.id,
-              category: adj.category,
-              amount: amt,
-              adjustmentType: amt < 0 ? 'DEDUCTION' : 'ADDITION',
-              notes: adj.notes,
+              category: adj.category.trim(),
+              amount: signedAmount,
+              adjustmentType: finalType,
+              notes: adj.notes || null,
+              sourceRow: i + 1,
             },
           });
         }
@@ -193,4 +253,3 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     return NextResponse.json({ error: err.message || 'Failed to delete record' }, { status: 500 });
   }
 }
-

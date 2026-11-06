@@ -4,6 +4,9 @@ import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { recalculateVehicleRecord } from '@/lib/calculationEngine';
 import { logAudit } from '@/lib/audit';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

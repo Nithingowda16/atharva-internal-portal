@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import CreateMonthModal from '@/components/CreateMonthModal';
 import VehicleRecordModal from '@/components/VehicleRecordModal';
 import PaymentSettlementModal from '@/components/PaymentSettlementModal';
+import AddVehicleModal from '@/components/AddVehicleModal';
 import {
   Calendar,
   Plus,
@@ -21,7 +22,8 @@ import {
   Clock,
   RotateCcw,
   Receipt,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Truck
 } from 'lucide-react';
 import { exportToExcel, exportToCSV } from '@/lib/exportUtils';
 
@@ -35,6 +37,7 @@ export default function MonthlyFinancePage() {
 
   // Modals state
   const [isCreateMonthOpen, setIsCreateMonthOpen] = useState(false);
+  const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [settlingRecord, setSettlingRecord] = useState<any | null>(null);
 
@@ -50,11 +53,18 @@ export default function MonthlyFinancePage() {
 
   const fetchPeriods = async () => {
     try {
-      const res = await fetch('/api/months');
+      const res = await fetch('/api/months', { cache: 'no-store' });
       const data = await res.json();
-      setPeriods(data.periods || []);
-      if (data.periods && data.periods.length > 0 && !selectedPeriodId) {
-        setSelectedPeriodId(data.periods[0].id);
+      const list = data.periods || [];
+      setPeriods(list);
+      if (list.length > 0) {
+        // Keep selected if still valid, otherwise pick first
+        setSelectedPeriodId((prev) => {
+          if (prev && list.some((p: any) => p.id === prev)) return prev;
+          return list[0].id;
+        });
+      } else {
+        setSelectedPeriodId('');
       }
     } catch (e) {
       console.error(e);
@@ -68,7 +78,7 @@ export default function MonthlyFinancePage() {
       if (statusFilter !== 'ALL') url += `&status=${statusFilter}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
 
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: 'no-store' });
       const data = await res.json();
       setRecords(data.records || []);
     } catch (e) {
@@ -90,11 +100,31 @@ export default function MonthlyFinancePage() {
       await fetch(`/api/months/${activePeriod.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ status: newStatus, reason }),
       });
       fetchPeriods();
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handleDeleteMonth = async () => {
+    if (!activePeriod) return;
+    if (activePeriod.monthCode === '2026-08' || activePeriod.monthCode === '2026-09') {
+      alert('Strict Immutability: Baseline historical months (August & September 2026) cannot be deleted.');
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete ${activePeriod.periodName}? All associated draft records for this month will be deleted.`)) return;
+
+    try {
+      const res = await fetch(`/api/months/${activePeriod.id}`, { method: 'DELETE', cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete month');
+      setSelectedPeriodId('');
+      await fetchPeriods();
+    } catch (err: any) {
+      alert(err.message);
     }
   };
 
@@ -105,6 +135,7 @@ export default function MonthlyFinancePage() {
     try {
       const res = await fetch(`/api/records/${recordId}?reason=${encodeURIComponent(reason)}`, {
         method: 'DELETE',
+        cache: 'no-store',
       });
       if (res.ok) {
         fetchRecords(selectedPeriodId);
@@ -142,8 +173,8 @@ export default function MonthlyFinancePage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto selection:bg-[#B3D7FF]">
       <Navbar
-        title="Monthly Finance Management"
-        subtitle="Vehicle Billing, Deductions, Net Settlements & Future Months"
+        title="Monthly Fleet Finance & Settlements"
+        subtitle="Vehicle-wise Billing, Deductions, Payments & Full Immutability"
         onRefresh={() => {
           fetchPeriods();
           if (selectedPeriodId) fetchRecords(selectedPeriodId);
@@ -172,31 +203,52 @@ export default function MonthlyFinancePage() {
                     isSelected ? 'bg-white/20 text-white' : 'bg-black/5 text-[#86868B]'
                   }`}
                 >
-                  {p._count?.monthlyRecords || 46}
+                  {p._count?.monthlyRecords !== undefined ? p._count.monthlyRecords : 0}
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div className="flex items-center space-x-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           {activePeriod && (
-            <button
-              onClick={handleToggleMonthStatus}
-              className="px-4 py-2 rounded-full border border-[#E5E5EA] bg-[#FFFFFF] hover:bg-[#F2F2F7] text-[#1D1D1F] text-xs font-medium flex items-center space-x-1.5 transition-colors"
-            >
-              {activePeriod.status === 'Locked' ? (
-                <>
-                  <Unlock className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                  <span>Reopen Month</span>
-                </>
-              ) : (
-                <>
-                  <Lock className="w-3.5 h-3.5 text-[#86868B]" />
-                  <span>Lock Month</span>
-                </>
+            <>
+              <button
+                onClick={() => setIsAddVehicleOpen(true)}
+                className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#EBF5FF] hover:bg-[#D9ECFF] text-[#007AFF] text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Add Vehicle</span>
+              </button>
+
+              <button
+                onClick={handleToggleMonthStatus}
+                className="px-4 py-2 rounded-full border border-[#E5E5EA] bg-[#FFFFFF] hover:bg-[#F2F2F7] text-[#1D1D1F] text-xs font-medium flex items-center space-x-1.5 transition-colors"
+              >
+                {activePeriod.status === 'Locked' ? (
+                  <>
+                    <Unlock className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                    <span>Reopen Month</span>
+                  </>
+                ) : (
+                  <>
+                    <Lock className="w-3.5 h-3.5 text-[#86868B]" />
+                    <span>Lock Month</span>
+                  </>
+                )}
+              </button>
+
+              {activePeriod.monthCode !== '2026-08' && activePeriod.monthCode !== '2026-09' && (
+                <button
+                  onClick={handleDeleteMonth}
+                  className="px-3.5 py-2 rounded-full border border-[#FF3B30]/30 bg-[#FEECEB] hover:bg-[#FCD3D1] text-[#FF3B30] text-xs font-medium flex items-center space-x-1.5 transition-colors"
+                  title="Delete this month and its draft records"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-[#FF3B30]" />
+                  <span>Delete Month</span>
+                </button>
               )}
-            </button>
+            </>
           )}
 
           <button
@@ -333,8 +385,29 @@ export default function MonthlyFinancePage() {
                 </tr>
               ) : records.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-8 text-center text-[#86868B]">
-                    No vehicle records found matching current filters.
+                  <td colSpan={10} className="py-12 text-center">
+                    <div className="max-w-xs mx-auto space-y-3">
+                      <div className="w-10 h-10 rounded-full bg-[#F2F2F7] flex items-center justify-center mx-auto text-[#86868B]">
+                        <Truck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-[#1D1D1F]">
+                          No vehicles in {activePeriod?.periodName || 'this month'}
+                        </p>
+                        <p className="text-xs text-[#86868B] mt-0.5">
+                          {activePeriod ? 'Start by adding your first vehicle billing record.' : 'Select a month or create a new one.'}
+                        </p>
+                      </div>
+                      {activePeriod && (
+                        <button
+                          onClick={() => setIsAddVehicleOpen(true)}
+                          className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-medium shadow-apple-btn inline-flex items-center space-x-1.5 transition-all"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ Add First Vehicle</span>
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -387,35 +460,30 @@ export default function MonthlyFinancePage() {
                         ₹{r.netPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right font-semibold text-[#34C759] tabular-nums">
+                      <td className="py-3.5 px-4 text-right font-medium text-[#34C759] tabular-nums">
                         ₹{r.amountPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                       </td>
 
                       <td className="py-3.5 px-3 text-center">
                         <span
-                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase ${
+                          className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
                             isPaid
-                              ? 'bg-[#EAF9EE] text-[#34C759] border border-[#D2F4DA]'
+                              ? 'bg-[#EAF9EE] text-[#34C759] border-[#D2F4DA]'
                               : isHold
-                              ? 'bg-[#FFF5E5] text-[#FF9F0A] border border-[#FFE4B8]'
+                              ? 'bg-[#FEECEB] text-[#FF3B30] border-[#FCD3D1]'
                               : isWF
-                              ? 'bg-[#F2F2F7] text-[#5856D6] border border-[#E5E5EA]'
+                              ? 'bg-[#FFF5E5] text-[#FF9F0A] border-[#FFE4B8]'
                               : isNoAcc
-                              ? 'bg-[#FEECEB] text-[#FF3B30] border border-[#FCD3D1]'
-                              : 'bg-[#F2F2F7] text-[#86868B] border border-[#E5E5EA]'
+                              ? 'bg-[#F2F2F7] text-[#86868B] border-[#E5E5EA]'
+                              : 'bg-[#EBF5FF] text-[#007AFF] border-[#D0E2FF]'
                           }`}
                         >
                           {r.paymentStatus}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-3 text-[#86868B] truncate max-w-[130px]" title={r.bankDetails}>
-                        <span className="text-[#1D1D1F] font-medium">{r.bankDetails || 'OTHER Bank'}</span>
-                        {r.paymentDate && (
-                          <span className="block text-[10px] text-[#86868B] font-mono">
-                            {r.paymentDate}
-                          </span>
-                        )}
+                      <td className="py-3.5 px-3 text-[#86868B] max-w-xs truncate text-[11px]">
+                        {r.bankDetails || '—'}
                       </td>
 
                       <td className="py-3.5 px-4 text-center">
@@ -423,19 +491,17 @@ export default function MonthlyFinancePage() {
                           <button
                             onClick={() => setEditingRecordId(r.id)}
                             className="p-1.5 rounded-full text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] transition-colors"
-                            title="Edit Record & Billing Lines"
+                            title="Edit Billing & Deductions"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
-
                           <button
                             onClick={() => setSettlingRecord(r)}
                             className="p-1.5 rounded-full text-[#86868B] hover:text-[#34C759] hover:bg-[#EAF9EE] transition-colors"
-                            title="Record Settlement Payment"
+                            title="Record Payment Settlement"
                           >
                             <CreditCard className="w-3.5 h-3.5" />
                           </button>
-
                           <button
                             onClick={() => handleDeleteRecord(r.id, r.vehicle.registrationNumber)}
                             className="p-1.5 rounded-full text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors"
@@ -463,6 +529,20 @@ export default function MonthlyFinancePage() {
           fetchPeriods();
         }}
       />
+
+      {activePeriod && (
+        <AddVehicleModal
+          isOpen={isAddVehicleOpen}
+          periodId={activePeriod.id}
+          periodName={activePeriod.periodName}
+          onClose={() => setIsAddVehicleOpen(false)}
+          onVehicleAdded={(newId) => {
+            fetchRecords(activePeriod.id);
+            fetchPeriods();
+            if (newId) setEditingRecordId(newId);
+          }}
+        />
+      )}
 
       <VehicleRecordModal
         isOpen={!!editingRecordId}

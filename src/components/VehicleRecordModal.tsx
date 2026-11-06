@@ -54,7 +54,7 @@ export default function VehicleRecordModal({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/records/${id}`);
+      const res = await fetch(`/api/records/${id}`, { cache: 'no-store' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to load record');
 
@@ -64,7 +64,14 @@ export default function VehicleRecordModal({
       setBankDetails(data.record.bankDetails || '');
       setRemarks(data.record.remarks || '');
       setBillingLines(data.record.billingLines || []);
-      setAdjustments(data.record.adjustments || []);
+      const formattedAdjustments = (data.record.adjustments || []).map((adj: any) => ({
+        id: adj.id,
+        category: adj.category || '',
+        adjustmentType: adj.adjustmentType || (adj.amount < 0 ? 'DEDUCTION' : 'ADDITION'),
+        amount: Math.abs(adj.amount !== null && adj.amount !== undefined ? adj.amount : 0),
+        notes: adj.notes || '',
+      }));
+      setAdjustments(formattedAdjustments);
     } catch (e: any) {
       setError(e.message);
     } finally {
@@ -93,7 +100,8 @@ export default function VehicleRecordModal({
       {
         id: null,
         category: 'Less Fuel Adv.',
-        amount: -1000,
+        adjustmentType: 'DEDUCTION',
+        amount: 1000,
         notes: '',
       },
     ]);
@@ -128,6 +136,7 @@ export default function VehicleRecordModal({
       const res = await fetch(`/api/records/${recordId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({
           paymentStatus,
           paymentDate,
@@ -135,7 +144,13 @@ export default function VehicleRecordModal({
           remarks,
           changeReason,
           billingLines,
-          adjustments,
+          adjustments: adjustments.map((adj) => ({
+            id: adj.id,
+            category: adj.category,
+            adjustmentType: adj.adjustmentType || 'DEDUCTION',
+            amount: Math.abs(parseFloat(adj.amount) || 0),
+            notes: adj.notes,
+          })),
         }),
       });
 
@@ -144,7 +159,7 @@ export default function VehicleRecordModal({
 
       setSuccessMsg('Record saved and recalculated successfully.');
       setChangeReason('');
-      loadRecord(recordId);
+      await loadRecord(recordId);
       onRecordUpdated();
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch (err: any) {
@@ -184,9 +199,12 @@ export default function VehicleRecordModal({
   }
   let liveDeductions = 0;
   for (const adj of adjustments) {
-    const amt = parseFloat(adj.amount) || 0;
-    if (amt < 0) liveDeductions += Math.abs(amt);
-    else liveDeductions -= amt;
+    const amt = Math.abs(parseFloat(adj.amount) || 0);
+    if (adj.adjustmentType === 'ADDITION') {
+      liveDeductions -= amt;
+    } else {
+      liveDeductions += amt;
+    }
   }
   const liveNet = liveGross - liveDeductions;
 
@@ -375,7 +393,7 @@ export default function VehicleRecordModal({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-[#86868B] font-medium">
-                  Negative = Deduction, Positive = Addition
+                  Select Deduction or Addition. Enter amount in Rupees (changes calculate automatically).
                 </p>
                 <button
                   type="button"
@@ -383,62 +401,107 @@ export default function VehicleRecordModal({
                   className="px-3.5 py-1 rounded-full text-xs font-medium bg-[#EBF5FF] text-[#007AFF] hover:bg-[#D9ECFF] flex items-center space-x-1 transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Adjustment</span>
+                  <span>Add Deduction / Adjustment</span>
                 </button>
               </div>
+
+              {/* Datalist for fast category selection */}
+              <datalist id="category-presets">
+                <option value="Less Fuel Adv." />
+                <option value="Office charge" />
+                <option value="GPS Rental" />
+                <option value="Fastag Recharge" />
+                <option value="Toll & Parking" />
+                <option value="Penalty / Traffic Fine" />
+                <option value="Advance Deduction" />
+                <option value="Driver Salary Advance" />
+                <option value="Performance Bonus" />
+                <option value="Trip Incentive" />
+              </datalist>
 
               <div className="border border-[#E5E5EA] rounded-[18px] overflow-hidden">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead className="bg-[#FBFBFC] text-[#86868B] font-semibold border-b border-[#E5E5EA]">
                     <tr>
                       <th className="py-2.5 px-3">Adjustment Category</th>
+                      <th className="py-2.5 px-3 w-36">Type</th>
                       <th className="py-2.5 px-3 w-36">Amount (₹)</th>
                       <th className="py-2.5 px-3">Notes</th>
                       <th className="py-2.5 px-3 w-14 text-center">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E5EA]">
-                    {adjustments.map((adj, idx) => (
-                      <tr key={idx} className="hover:bg-[#F2F2F7]/50">
-                        <td className="py-2 px-3">
-                          <input
-                            type="text"
-                            value={adj.category || ''}
-                            onChange={(e) => updateAdjustment(idx, 'category', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                          />
-                        </td>
-                        <td className="py-2 px-3">
-                          <input
-                            type="number"
-                            step="any"
-                            value={adj.amount !== null ? adj.amount : ''}
-                            onChange={(e) => updateAdjustment(idx, 'amount', e.target.value)}
-                            className={`w-full px-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs font-semibold focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] tabular-nums ${
-                              (parseFloat(adj.amount) || 0) < 0 ? 'text-[#FF3B30]' : 'text-[#34C759]'
-                            }`}
-                          />
-                        </td>
-                        <td className="py-2 px-3">
-                          <input
-                            type="text"
-                            value={adj.notes || ''}
-                            onChange={(e) => updateAdjustment(idx, 'notes', e.target.value)}
-                            placeholder="Optional remark"
-                            className="w-full px-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                          />
-                        </td>
-                        <td className="py-2 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => setAdjustments(adjustments.filter((_, i) => i !== idx))}
-                            className="p-1 rounded-full text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                    {adjustments.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-6 text-center text-[#86868B] text-xs">
+                          No deductions or adjustments recorded for this vehicle.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      adjustments.map((adj, idx) => (
+                        <tr key={idx} className="hover:bg-[#F2F2F7]/50">
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              list="category-presets"
+                              value={adj.category || ''}
+                              onChange={(e) => updateAdjustment(idx, 'category', e.target.value)}
+                              placeholder="e.g. Less Fuel Adv., Office charge"
+                              className="w-full px-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                            />
+                          </td>
+                          <td className="py-2 px-3">
+                            <select
+                              value={adj.adjustmentType || 'DEDUCTION'}
+                              onChange={(e) => updateAdjustment(idx, 'adjustmentType', e.target.value)}
+                              className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                                adj.adjustmentType === 'ADDITION'
+                                  ? 'bg-[#EAF9EE] text-[#34C759] border-[#D2F4DA]'
+                                  : 'bg-[#FEECEB] text-[#FF3B30] border-[#FCD3D1]'
+                              }`}
+                            >
+                              <option value="DEDUCTION">Deduction (-)</option>
+                              <option value="ADDITION">Addition (+)</option>
+                            </select>
+                          </td>
+                          <td className="py-2 px-3">
+                            <div className="relative">
+                              <span className="absolute left-2.5 top-1.5 text-xs text-[#86868B] font-medium">₹</span>
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                value={adj.amount !== null && adj.amount !== undefined ? adj.amount : ''}
+                                onChange={(e) => updateAdjustment(idx, 'amount', e.target.value)}
+                                placeholder="0.00"
+                                className={`w-full pl-6 pr-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs font-semibold focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] tabular-nums ${
+                                  adj.adjustmentType === 'ADDITION' ? 'text-[#34C759]' : 'text-[#FF3B30]'
+                                }`}
+                              />
+                            </div>
+                          </td>
+                          <td className="py-2 px-3">
+                            <input
+                              type="text"
+                              value={adj.notes || ''}
+                              onChange={(e) => updateAdjustment(idx, 'notes', e.target.value)}
+                              placeholder="Optional remark or slip number"
+                              className="w-full px-2.5 py-1.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-lg text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                            />
+                          </td>
+                          <td className="py-2 px-3 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setAdjustments(adjustments.filter((_, i) => i !== idx))}
+                              title="Delete adjustment"
+                              className="p-1 rounded-full text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
