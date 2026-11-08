@@ -6,6 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
   LayoutDashboard,
+  Landmark,
+  ChevronDown,
   Calendar,
   Truck,
   CarFront,
@@ -25,6 +27,22 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
+
+
+const BANK_SHEETS_SUB_NAV = [
+  { label: 'Bank Balance', href: '/bank/bank-balance', isMain: true },
+  { label: 'DCO', href: '/bank/dco' },
+  { label: 'Profit Sharing', href: '/bank/profit-sharing' },
+  { label: 'Pending Payment', href: '/bank/pending-payment' },
+  { label: 'Harish GS', href: '/bank/harish-gs' },
+  { label: 'Expense', href: '/bank/expense' },
+  { label: 'SST', href: '/bank/sst' },
+  { label: 'ECO Travels', href: '/bank/eco-travels' },
+  { label: 'EURO-Amz', href: '/bank/euro-amz' },
+  { label: 'O2', href: '/bank/o2' },
+  { label: 'ORIX -Parexel', href: '/bank/orix-parexel' },
+  { label: 'ANP-HCL', href: '/bank/anp-hcl' },
+];
 
 interface SidebarProps {
   user?: {
@@ -62,38 +80,39 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
     {
       title: 'Overview',
       items: [
-        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
+        { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
       ],
     },
     {
       title: 'Finance',
       items: [
-        { label: 'Monthly Finance', href: '/monthly-finance', icon: Calendar, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Billing & Transactions', href: '/billing', icon: Receipt, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Adjustments & Deductions', href: '/adjustments', icon: Scissors, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Payments & Settlements', href: '/payments', icon: CreditCard, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
+        { label: 'Monthly Finance', href: '/monthly-finance', icon: Calendar, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Bank & Accounts Management', href: '/bank', icon: Landmark, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'], hasSubItems: true },
+        { label: 'Billing & Transactions', href: '/billing', icon: Receipt, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Adjustments & Deductions', href: '/adjustments', icon: Scissors, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Payments & Settlements', href: '/payments', icon: CreditCard, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
       ],
     },
     {
       title: 'Management',
       items: [
-        { label: 'Fleet Management', href: '/fleet', icon: Truck, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Vehicle Management', href: '/vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Company Management', href: '/companies', icon: Building2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER'] },
+        { label: 'Fleet Management', href: '/fleet', icon: Truck, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Vehicle Management', href: '/vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Company Management', href: '/companies', icon: Building2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'VIEWER'] },
       ],
     },
     {
       title: 'Analytics',
       items: [
-        { label: 'Reports', href: '/reports', icon: FileBarChart2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
-        { label: 'Excel Imports & Archive', href: '/raw-cells', icon: FileSpreadsheet, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
+        { label: 'Reports', href: '/reports', icon: FileBarChart2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
+        { label: 'Excel Imports & Archive', href: '/raw-cells', icon: FileSpreadsheet, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
       ],
     },
     {
       title: 'Administration',
       items: [
-        { label: 'Audit History', href: '/audit', icon: History, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER'] },
-        { label: 'Recycle Bin', href: '/recycle-bin', icon: Trash2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER'] },
+        { label: 'Audit History', href: '/audit', icon: History, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'VIEWER'] },
+        { label: 'Recycle Bin', href: '/recycle-bin', icon: Trash2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'VIEWER'] },
         { label: 'User Management', href: '/users', icon: Users, roles: ['SUPER_ADMIN'] },
       ],
     },
@@ -225,7 +244,64 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
                     );
                   }
 
-                  // Expanded mode: Full item with icon and label
+                  // Expanded mode: Sub-menu for Bank & Accounts Management
+                  if ((item as any).hasSubItems) {
+                    const isBankOpen = pathname.startsWith('/bank');
+                    return (
+                      <div key={item.href} className="space-y-1">
+                        <Link
+                          href={item.href}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
+                            isBankOpen
+                              ? 'bg-[#007AFF] text-white shadow-apple-btn font-semibold'
+                              : 'text-[#1D1D1F] hover:bg-[#F2F2F7] text-[#48484A]'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 truncate">
+                            <Icon
+                              className={`w-4 h-4 shrink-0 ${
+                                isBankOpen ? 'text-white' : 'text-[#86868B]'
+                              }`}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {isBankOpen ? (
+                            <ChevronDown className="w-3.5 h-3.5 text-white/80 shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3.5 h-3.5 text-[#86868B] shrink-0" />
+                          )}
+                        </Link>
+
+                        {isBankOpen && (
+                          <div className="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-[#007AFF]/20 ml-4 my-1">
+                            {BANK_SHEETS_SUB_NAV.map((sub) => {
+                              const isSubActive = pathname === sub.href || (sub.isMain && pathname === '/bank');
+                              return (
+                                <Link
+                                  key={sub.href}
+                                  href={sub.href}
+                                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+                                    isSubActive
+                                      ? 'bg-[#007AFF]/10 text-[#007AFF] font-bold'
+                                      : 'text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7]'
+                                  }`}
+                                >
+                                  <span className="truncate">{sub.label}</span>
+                                  {sub.isMain && (
+                                    <span className="text-[9px] px-1 py-0.2 bg-[#34C759]/10 text-[#34C759] rounded font-bold">
+                                      Main
+                                    </span>
+                                  )}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
+                  // Normal expanded item
                   return (
                     <Link
                       key={item.href}
@@ -365,6 +441,64 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
                 {visibleItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
+                  if ((item as any).hasSubItems) {
+                    const isBankOpen = pathname.startsWith('/bank');
+                    return (
+                      <div key={item.href} className="space-y-1">
+                        <Link
+                          href={item.href}
+                          onClick={closeMobile}
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${
+                            isBankOpen
+                              ? 'bg-[#007AFF] text-white shadow-apple-btn font-semibold'
+                              : 'text-[#1D1D1F] hover:bg-[#F2F2F7] text-[#48484A]'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3 truncate">
+                            <Icon
+                              className={`w-4 h-4 shrink-0 ${
+                                isBankOpen ? 'text-white' : 'text-[#86868B]'
+                              }`}
+                            />
+                            <span className="truncate">{item.label}</span>
+                          </div>
+                          {isBankOpen ? (
+                            <ChevronDown className="w-3.5 h-3.5 text-white/80 shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3.5 h-3.5 text-white/80 shrink-0" />
+                          )}
+                        </Link>
+
+                        {isBankOpen && (
+                          <div className="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-[#007AFF]/20 ml-5 my-1">
+                            {BANK_SHEETS_SUB_NAV.map((sub) => {
+                              const isSubActive = pathname === sub.href || (sub.isMain && pathname === '/bank');
+                              return (
+                                <Link
+                                  key={sub.href}
+                                  href={sub.href}
+                                  onClick={closeMobile}
+                                  className={`flex items-center justify-between px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                                    isSubActive
+                                      ? 'bg-[#007AFF]/10 text-[#007AFF] font-bold'
+                                      : 'text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7]'
+                                  }`}
+                                >
+                                  <span className="truncate">{sub.label}</span>
+                                  {sub.isMain && (
+                                    <span className="text-[9px] px-1 py-0.2 bg-[#34C759]/10 text-[#34C759] rounded font-bold">
+                                      Main
+                                    </span>
+                                  )}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
+
                   return (
                     <Link
                       key={item.href}

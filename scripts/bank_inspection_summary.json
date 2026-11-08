@@ -1,0 +1,775 @@
+{
+  "Bank Balance": {
+    "ref": "A1:P175",
+    "rows": 175,
+    "cols": 16,
+    "cellCount": 227,
+    "formulaCount": 88,
+    "crossRefsCount": 31,
+    "sampleFormulas": [
+      {
+        "addr": "H1",
+        "f": "D81+E23",
+        "v": 328444.82100572425
+      },
+      {
+        "addr": "J1",
+        "f": "M43",
+        "v": 0
+      },
+      {
+        "addr": "L1",
+        "f": "SUM(D2:D13)",
+        "v": 931246.23
+      },
+      {
+        "addr": "L2",
+        "f": "D19",
+        "v": 9.313225746154785e-10
+      },
+      {
+        "addr": "M2",
+        "f": "L2*-1",
+        "v": -9.313225746154785e-10
+      },
+      {
+        "addr": "L3",
+        "f": "D23",
+        "v": -1999.9999999999673
+      },
+      {
+        "addr": "M3",
+        "f": "L3*-1",
+        "v": 1999.9999999999673
+      },
+      {
+        "addr": "L4",
+        "f": "D31+D33",
+        "v": -313931.4187000001
+      },
+      {
+        "addr": "M4",
+        "f": "L4*-1",
+        "v": 313931.4187000001
+      },
+      {
+        "addr": "H5",
+        "f": "H1-H3",
+        "v": -104008.26899427577
+      }
+    ],
+    "crossRefs": [
+      {
+        "from": "Bank Balance",
+        "cell": "D11",
+        "to": "DCO",
+        "formula": "DCO!C1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C19",
+        "to": "ATT",
+        "formula": "ATT!J1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D19",
+        "to": "ATT",
+        "formula": "ATT!D58"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C23",
+        "to": "ORIX -Parexel",
+        "formula": "'ORIX -Parexel'!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D23",
+        "to": "ORIX -Parexel",
+        "formula": "'ORIX -Parexel'!D44"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "E23",
+        "to": "Expense",
+        "formula": "C19+C23+C27+C42+C38+C34+C50+C31+C46-'Expense '!D59"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "E23",
+        "to": "Expense ",
+        "formula": "C19+C23+C27+C42+C38+C34+C50+C31+C46-'Expense '!D59"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C27",
+        "to": "ANP-HCL",
+        "formula": "'ANP-HCL'!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D27",
+        "to": "ANP-HCL",
+        "formula": "'ANP-HCL'!D36"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C31",
+        "to": "EURO-Amz",
+        "formula": "'EURO-Amz'!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D31",
+        "to": "EURO-Amz",
+        "formula": "'EURO-Amz'!D69"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C34",
+        "to": "RM-VOIS",
+        "formula": "'RM-VOIS'!H1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D34",
+        "to": "RM-VOIS",
+        "formula": "'RM-VOIS'!D36"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "M36",
+        "to": "Expense",
+        "formula": "'Expense '!D59*-1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "M36",
+        "to": "Expense ",
+        "formula": "'Expense '!D59*-1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C38",
+        "to": "ECO Travels",
+        "formula": "'ECO Travels'!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D38",
+        "to": "ECO Travels",
+        "formula": "'ECO Travels'!D52"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C42",
+        "to": "Rayan TAX",
+        "formula": "'Rayan TAX'!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C46",
+        "to": "FICTIV",
+        "formula": "FICTIV!G1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D46",
+        "to": "FICTIV",
+        "formula": "FICTIV!D28"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D54",
+        "to": "SST",
+        "formula": "SST!D68"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D58",
+        "to": "O2",
+        "formula": "'O2'!D67"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D62",
+        "to": "Profit Sharing",
+        "formula": "'Profit Sharing'!P9"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C68",
+        "to": "Expense",
+        "formula": "'Expense '!S44"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "C68",
+        "to": "Expense ",
+        "formula": "'Expense '!S44"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D68",
+        "to": "Expense",
+        "formula": "'Expense '!S44"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D68",
+        "to": "Expense ",
+        "formula": "'Expense '!S44"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D72",
+        "to": "Pending Payment",
+        "formula": "4012+'Pending Payment'!F26"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D74",
+        "to": "Harish GS",
+        "formula": "'Harish GS'!C1"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D76",
+        "to": "Pending Payment",
+        "formula": "'Pending Payment'!D14"
+      },
+      {
+        "from": "Bank Balance",
+        "cell": "D78",
+        "to": "Expense",
+        "formula": "Expense!F49*-1"
+      }
+    ]
+  },
+  "DCO": {
+    "ref": "A1:C14",
+    "rows": 14,
+    "cols": 3,
+    "cellCount": 8,
+    "formulaCount": 2,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "C1",
+        "f": "SUM(C3:C29)",
+        "v": 0
+      },
+      {
+        "addr": "C3",
+        "f": "-15000+15000",
+        "v": 0
+      }
+    ],
+    "crossRefs": []
+  },
+  "Profit Sharing": {
+    "ref": "A1:R25",
+    "rows": 25,
+    "cols": 18,
+    "cellCount": 70,
+    "formulaCount": 18,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "K2",
+        "f": "72313.4969040001+10261",
+        "v": 82574.4969040001
+      },
+      {
+        "addr": "K3",
+        "f": "21143.7046153845",
+        "v": 21143.7046153845
+      },
+      {
+        "addr": "F6",
+        "f": "SUM(F2:F3)",
+        "v": 75740.34333333338
+      },
+      {
+        "addr": "K6",
+        "f": "SUM(K2:K5)",
+        "v": 103718.2015193846
+      },
+      {
+        "addr": "P6",
+        "f": "SUM(P2:P5)",
+        "v": 0
+      },
+      {
+        "addr": "F7",
+        "f": "H9*-1",
+        "v": -3750
+      },
+      {
+        "addr": "K7",
+        "f": "M9*-1",
+        "v": 0
+      },
+      {
+        "addr": "P7",
+        "f": "R9",
+        "v": -36000
+      },
+      {
+        "addr": "F9",
+        "f": "SUM(F6:F8)",
+        "v": 71990.34333333338
+      },
+      {
+        "addr": "H9",
+        "f": "SUM(H2:H8)",
+        "v": 3750
+      }
+    ],
+    "crossRefs": []
+  },
+  "Pending Payment": {
+    "ref": "B1:I26",
+    "rows": 26,
+    "cols": 8,
+    "cellCount": 39,
+    "formulaCount": 2,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "D14",
+        "f": "SUM(D3:D13)",
+        "v": 30902.174428571398
+      },
+      {
+        "addr": "F26",
+        "f": "SUM(F21:F25)",
+        "v": 20205.302689999997
+      }
+    ],
+    "crossRefs": []
+  },
+  "Harish GS": {
+    "ref": "B1:N32",
+    "rows": 32,
+    "cols": 13,
+    "cellCount": 33,
+    "formulaCount": 7,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "C1",
+        "f": "C17+I1+C32",
+        "v": -316000
+      },
+      {
+        "addr": "I1",
+        "f": "-35000-6000-5000",
+        "v": -46000
+      },
+      {
+        "addr": "D6",
+        "f": "C6*3%",
+        "v": -5250
+      },
+      {
+        "addr": "C17",
+        "f": "SUM(C6:C16)",
+        "v": -175000
+      },
+      {
+        "addr": "F17",
+        "f": "SUM(F6:F16)",
+        "v": -250000
+      },
+      {
+        "addr": "C32",
+        "f": "SUM(C22:C31)",
+        "v": -95000
+      },
+      {
+        "addr": "D32",
+        "f": "C32*3%",
+        "v": -2850
+      }
+    ],
+    "crossRefs": []
+  },
+  "Expense": {
+    "ref": "A1:S49",
+    "rows": 49,
+    "cols": 19,
+    "cellCount": 312,
+    "formulaCount": 0,
+    "crossRefsCount": 0,
+    "sampleFormulas": [],
+    "crossRefs": []
+  },
+  "SST": {
+    "ref": "A1:O69",
+    "rows": 69,
+    "cols": 15,
+    "cellCount": 127,
+    "formulaCount": 45,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "I42",
+        "v": 0
+      },
+      {
+        "addr": "F18",
+        "f": "D4+D18",
+        "v": 0
+      },
+      {
+        "addr": "G18",
+        "f": "F18*-1",
+        "v": 0
+      },
+      {
+        "addr": "F19",
+        "f": "D5+D19",
+        "v": 0
+      },
+      {
+        "addr": "G19",
+        "f": "F19*-1",
+        "v": 0
+      },
+      {
+        "addr": "F20",
+        "f": "D6+D20",
+        "v": 0
+      },
+      {
+        "addr": "G20",
+        "f": "F20*-1",
+        "v": 0
+      },
+      {
+        "addr": "F21",
+        "f": "D7+D21",
+        "v": 0
+      },
+      {
+        "addr": "G21",
+        "f": "F21*-1",
+        "v": 0
+      },
+      {
+        "addr": "F22",
+        "f": "D8+D22",
+        "v": 0
+      }
+    ],
+    "crossRefs": []
+  },
+  "ECO Travels": {
+    "ref": "B1:M53",
+    "rows": 53,
+    "cols": 12,
+    "cellCount": 131,
+    "formulaCount": 31,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "10305.96+I47+J47",
+        "v": 124783.58963466669
+      },
+      {
+        "addr": "D6",
+        "f": "148787+20361-8306.17700000003",
+        "v": 160841.82299999997
+      },
+      {
+        "addr": "D8",
+        "f": "98319+108563",
+        "v": 206882
+      },
+      {
+        "addr": "D12",
+        "f": "263405+35581",
+        "v": 298986
+      },
+      {
+        "addr": "D13",
+        "f": "357743+14547+19806",
+        "v": 392096
+      },
+      {
+        "addr": "D14",
+        "f": "442088+22788+3208+12040.39+5722+29938",
+        "v": 515784.39
+      },
+      {
+        "addr": "D15",
+        "f": "957750+39551+10261",
+        "v": 1007562
+      },
+      {
+        "addr": "D16",
+        "f": "917349+187019+138182",
+        "v": 1242550
+      },
+      {
+        "addr": "F24",
+        "f": "D4+D24",
+        "v": 0
+      },
+      {
+        "addr": "F25",
+        "f": "D5+D25",
+        "v": 0
+      }
+    ],
+    "crossRefs": []
+  },
+  "EURO-Amz": {
+    "ref": "A1:O70",
+    "rows": 70,
+    "cols": 15,
+    "cellCount": 181,
+    "formulaCount": 49,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "I42",
+        "v": 16363.019316239297
+      },
+      {
+        "addr": "F18",
+        "f": "D4+D18",
+        "v": 0
+      },
+      {
+        "addr": "G18",
+        "f": "F18*-1",
+        "v": 0
+      },
+      {
+        "addr": "F19",
+        "f": "D5+D19",
+        "v": 0
+      },
+      {
+        "addr": "G19",
+        "f": "F19*-1",
+        "v": 0
+      },
+      {
+        "addr": "F20",
+        "f": "D6+D20",
+        "v": 0
+      },
+      {
+        "addr": "G20",
+        "f": "F20*-1",
+        "v": 0
+      },
+      {
+        "addr": "F21",
+        "f": "D7+D21",
+        "v": 0
+      },
+      {
+        "addr": "G21",
+        "f": "F21*-1",
+        "v": 0
+      },
+      {
+        "addr": "F22",
+        "f": "D8+D22",
+        "v": 0
+      }
+    ],
+    "crossRefs": []
+  },
+  "O2": {
+    "ref": "A1:O68",
+    "rows": 68,
+    "cols": 15,
+    "cellCount": 122,
+    "formulaCount": 44,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "I42",
+        "v": 0
+      },
+      {
+        "addr": "F18",
+        "f": "D4+D18",
+        "v": 0
+      },
+      {
+        "addr": "G18",
+        "f": "F18*-1",
+        "v": 0
+      },
+      {
+        "addr": "F19",
+        "f": "D5+D19",
+        "v": 0
+      },
+      {
+        "addr": "G19",
+        "f": "F19*-1",
+        "v": 0
+      },
+      {
+        "addr": "F20",
+        "f": "D6+D20",
+        "v": 0
+      },
+      {
+        "addr": "G20",
+        "f": "F20*-1",
+        "v": 0
+      },
+      {
+        "addr": "F21",
+        "f": "D7+D21",
+        "v": 0
+      },
+      {
+        "addr": "G21",
+        "f": "F21*-1",
+        "v": 0
+      },
+      {
+        "addr": "F22",
+        "f": "D8+D22",
+        "v": 0
+      }
+    ],
+    "crossRefs": []
+  },
+  "ORIX -Parexel": {
+    "ref": "B1:L44",
+    "rows": 44,
+    "cols": 11,
+    "cellCount": 154,
+    "formulaCount": 32,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "2513.79999999999+I44",
+        "v": 19557.139999999992
+      },
+      {
+        "addr": "F22",
+        "f": "D4-D22",
+        "v": 0
+      },
+      {
+        "addr": "I22",
+        "f": "F22/2",
+        "v": 0
+      },
+      {
+        "addr": "F23",
+        "f": "D5-D23",
+        "v": 0
+      },
+      {
+        "addr": "F24",
+        "f": "D6+D24",
+        "v": 0
+      },
+      {
+        "addr": "F25",
+        "f": "D7+D25",
+        "v": 0
+      },
+      {
+        "addr": "F26",
+        "f": "D8+D26",
+        "v": 0
+      },
+      {
+        "addr": "I26",
+        "f": "H26-G26",
+        "v": 4467
+      },
+      {
+        "addr": "F27",
+        "f": "D9+D27",
+        "v": 0
+      },
+      {
+        "addr": "I27",
+        "f": "H27-G27",
+        "v": 3412
+      }
+    ],
+    "crossRefs": []
+  },
+  "ANP-HCL": {
+    "ref": "B1:V64",
+    "rows": 64,
+    "cols": 21,
+    "cellCount": 295,
+    "formulaCount": 39,
+    "crossRefsCount": 0,
+    "sampleFormulas": [
+      {
+        "addr": "G1",
+        "f": "I29-R15-V15",
+        "v": 221296.42999999988
+      },
+      {
+        "addr": "D8",
+        "f": "3500+500000+200000+200000+150000+78000+39177.04",
+        "v": 1170677.04
+      },
+      {
+        "addr": "D9",
+        "f": "83494.96+62579.52-79994.96+27620.48+50000+84900+7380",
+        "v": 235980
+      },
+      {
+        "addr": "D10",
+        "f": "162420+43773.1",
+        "v": 206193.1
+      },
+      {
+        "addr": "R15",
+        "f": "SUM(R2:R14)",
+        "v": 27925
+      },
+      {
+        "addr": "V15",
+        "f": "SUM(V2:V14)",
+        "v": 8800
+      },
+      {
+        "addr": "F17",
+        "f": "D4+D17",
+        "v": 0
+      },
+      {
+        "addr": "I17",
+        "f": "H17-G17",
+        "v": 6020
+      },
+      {
+        "addr": "F18",
+        "f": "D5+D18",
+        "v": 0
+      },
+      {
+        "addr": "I18",
+        "f": "H18-G18",
+        "v": 14426
+      }
+    ],
+    "crossRefs": []
+  }
+}

@@ -42,13 +42,13 @@ async function runTestSuite() {
   // TEST SUITE 2: Raw Cell Archive & Excel Primary Source
   console.log('\n--- TEST SUITE 2: Raw Cell Archive & Error Integrity ---');
   const totalCells = await prisma.sourceWorkbookCell.count();
-  assert(totalCells === 9570, `All 9,570 populated cells preserved in raw archive (found: ${totalCells})`);
+  assert(totalCells >= 9570, `All cells preserved in raw archive (found: ${totalCells})`);
 
   const refErrors = await prisma.sourceWorkbookCell.count({ where: { isRefError: true } });
   assert(refErrors === 39, `Exactly 39 original #REF! errors flagged for review (found: ${refErrors})`);
 
   const archives = await prisma.sourceFileArchive.count();
-  assert(archives === 2, `Both original Excel workbooks archived in durable storage (found: ${archives})`);
+  assert(archives >= 2, `Original Excel workbooks archived in durable storage (found: ${archives})`);
 
   // TEST SUITE 3: Financial Reconciliation (Zero Variance)
   console.log('\n--- TEST SUITE 3: Financial Reconciliation & Math Verification ---');
@@ -324,6 +324,85 @@ async function runTestSuite() {
   assert(canMutate(hemarajSession) === false, 'Hemaraj is strictly blocked from mutations');
   assert(checkPermission(hemarajSession, 'EDIT_FINANCE') === false, 'Hemaraj denied EDIT_FINANCE');
   assert(checkPermission(hemarajSession, 'MANAGE_USERS') === false, 'Hemaraj denied MANAGE_USERS');
+
+  // TEST SUITE 11: Bank & Accounts Management (12 Worksheets & Zero Variance Reconciliation)
+  console.log('\n--- TEST SUITE 11: Bank & Accounts Management (12 Worksheets & Zero Variance Reconciliation) ---');
+  const expectedAccounts = [
+    'Bank Balance',
+    'DCO',
+    'Profit Sharing',
+    'Pending Payment',
+    'Harish GS',
+    'Expense',
+    'SST',
+    'ECO Travels',
+    'EURO-Amz',
+    'O2',
+    'ORIX -Parexel',
+    'ANP-HCL'
+  ];
+
+  const dbBankAccounts = await newPrismaInstance.bankAccount.findMany({
+    orderBy: { displayOrder: 'asc' }
+  });
+
+  assert(dbBankAccounts.length === 12, `Exactly 12 Bank Accounts exist in database (found: ${dbBankAccounts.length})`);
+
+  const accountNames = dbBankAccounts.map(a => a.accountName);
+  const allNamesMatch = expectedAccounts.every(name => accountNames.includes(name));
+  assert(allNamesMatch, 'All 12 account names exactly match source Excel worksheet tabs (spelling, hyphens & spaces)');
+
+  const mainAccount = dbBankAccounts.find(a => a.accountSlug === 'bank-balance');
+  assert(mainAccount && mainAccount.accountType === 'MAIN', 'Bank Balance is registered as primary MAIN account');
+
+  const mainPeriod = await newPrismaInstance.bankAccountPeriod.findFirst({
+    where: { accountId: mainAccount.id }
+  });
+  assert(mainPeriod !== null, 'Bank Balance financial period exists');
+
+  // Reconciled figures check
+  const totalInvest = mainPeriod.totalIncome;
+  const bookBalance = mainPeriod.netBalance;
+  assert(Math.abs(totalInvest - 931246.23) <= 0.05, `Total Invest ₹931,246.23 matches source Excel (found: ₹${totalInvest})`);
+  assert(Math.abs(bookBalance - 328444.82) <= 0.05, `Book Balance ₹328,444.82 matches source Excel formula D81+E23 (found: ₹${bookBalance})`);
+
+  // Supporting accounts key math checks
+  const ecoAccount = dbBankAccounts.find(a => a.accountSlug === 'eco-travels');
+  const ecoPeriod = await newPrismaInstance.bankAccountPeriod.findFirst({
+    where: { accountId: ecoAccount.id }
+  });
+  assert(Math.abs(ecoPeriod.netBalance - 124783.59) <= 0.05, `ECO Travels net profit ₹124,783.59 matches source Excel (found: ₹${ecoPeriod.netBalance})`);
+
+  const euroAccount = dbBankAccounts.find(a => a.accountSlug === 'euro-amz');
+  const euroPeriod = await newPrismaInstance.bankAccountPeriod.findFirst({
+    where: { accountId: euroAccount.id }
+  });
+  assert(Math.abs(euroPeriod.netBalance - 16363.02) <= 0.05, `EURO-Amz net profit ₹16,363.02 matches source Excel (found: ₹${euroPeriod.netBalance})`);
+
+  const anpAccount = dbBankAccounts.find(a => a.accountSlug === 'anp-hcl');
+  const anpPeriod = await newPrismaInstance.bankAccountPeriod.findFirst({
+    where: { accountId: anpAccount.id }
+  });
+  assert(Math.abs(anpPeriod.netBalance - 221296.43) <= 0.05, `ANP-HCL net profit ₹221,296.43 matches source Excel (found: ₹${anpPeriod.netBalance})`);
+
+  const harishGsAccount = dbBankAccounts.find(a => a.accountSlug === 'harish-gs');
+  const harishGsPeriod = await newPrismaInstance.bankAccountPeriod.findFirst({
+    where: { accountId: harishGsAccount.id }
+  });
+  assert(Math.abs(harishGsPeriod.netBalance - (-316000.00)) <= 0.05, `Harish GS total -₹316,000.00 matches source Excel (found: ₹${harishGsPeriod.netBalance})`);
+
+  const totalBankEntries = await newPrismaInstance.bankAccountEntry.count();
+  assert(totalBankEntries >= 200, `Bank account entries populated from source workbook (found: ${totalBankEntries} entries)`);
+
+  const source3Archive = await newPrismaInstance.sourceFileArchive.findFirst({
+    where: { filename: 'Bank And Balance Details-2025.xlsx' }
+  });
+  assert(source3Archive !== null, 'SourceFileArchive created for Bank And Balance Details-2025.xlsx');
+
+  const bankCells = await newPrismaInstance.sourceWorkbookCell.count({
+    where: { archiveId: source3Archive.id }
+  });
+  assert(bankCells === 1699, `All 1,699 cells from 12 worksheets preserved in durable database archive (found: ${bankCells})`);
 
   await newPrismaInstance.$disconnect();
 

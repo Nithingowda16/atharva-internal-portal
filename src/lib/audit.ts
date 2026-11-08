@@ -3,8 +3,8 @@ import prisma from './prisma';
 export interface AuditParams {
   userId?: string | null;
   userEmail: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE' | 'REVERT' | 'APPROVE' | 'CLONE_MONTH' | 'IMPORT' | 'EXPORT' | 'LOGIN' | 'LOGOUT' | 'ASSIGN_DRIVER' | 'REVEAL_SENSITIVE_DATA';
-  module: 'MONTHLY_FINANCE' | 'VEHICLES' | 'BILLING' | 'ADJUSTMENTS' | 'PAYMENTS' | 'USERS' | 'EXCEL_IMPORT' | 'BACKUP' | 'FLEET_MANAGEMENT';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE' | 'REVERT' | 'APPROVE' | 'CLONE_MONTH' | 'CREATE_MONTH' | 'IMPORT' | 'EXPORT' | 'LOGIN' | 'LOGOUT' | 'ASSIGN_DRIVER' | 'REVEAL_SENSITIVE_DATA' | 'RECALCULATE';
+  module: 'MONTHLY_FINANCE' | 'VEHICLES' | 'BILLING' | 'ADJUSTMENTS' | 'PAYMENTS' | 'USERS' | 'EXCEL_IMPORT' | 'BACKUP' | 'FLEET_MANAGEMENT' | 'BANK_ACCOUNTS';
   entityType: string;
   entityId?: string | null;
   previousState?: any;

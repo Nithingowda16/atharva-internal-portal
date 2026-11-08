@@ -285,3 +285,76 @@ model RecycleBinItem {
   @@index([restoreStatus])
 }
 
+
+
+model BankAccount {
+  id           String              @id @default(cuid())
+  accountName  String              @unique // "Bank Balance", "DCO", "Profit Sharing", etc.
+  accountSlug  String              @unique // "bank-balance", "dco", "profit-sharing", etc.
+  accountType  String              @default("SUPPORTING") // "MAIN" or "SUPPORTING"
+  description  String?
+  displayOrder Int                 @default(0)
+  isDeleted    Boolean             @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  entries      BankAccountEntry[]
+  periods      BankAccountPeriod[]
+
+  @@index([accountSlug])
+  @@index([accountType])
+}
+
+model BankAccountPeriod {
+  id             String      @id @default(cuid())
+  accountId      String
+  account        BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  periodCode     String      // "2024-25", "2025-26", "2026-27", "ALL", etc.
+  periodLabel    String      // "FY 2025-26", "Consolidated 2025-2026", etc.
+  openingBalance Float       @default(0)
+  totalIncome    Float       @default(0)
+  totalExpense   Float       @default(0)
+  netBalance     Float       @default(0)
+  closingBalance Float       @default(0)
+  status         String      @default("ACTIVE") // "ACTIVE", "LOCKED", "RECONCILED"
+  isLocked       Boolean     @default(false)
+  remarks        String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@unique([accountId, periodCode])
+  @@index([accountId])
+}
+
+model BankAccountEntry {
+  id              String      @id @default(cuid())
+  accountId       String
+  account         BankAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  periodCode      String?     // e.g. "2025-01", "2026-MAY", "2025-26"
+  entryDate       String?     // Date string or period label
+  section         String?     // "PAYMENT", "EXPENSE", "PROFIT", "MARGIN", "INVESTMENT", "DEDUCTION", etc.
+  category        String?     // Subcategory (e.g. "RENT", "Current Bill", "Fuel Commission")
+  particulars     String?     // Description / Item name
+  sourceReference String?     // Reference / Vendor / Site
+  amount          Float       @default(0)
+  rawAmount       String?     // Original string representation
+  formulaString   String?     // Original Excel formula if any
+  paidAmount      Float?
+  receivedAmount  Float?
+  netAmount       Float?
+  invoicedAmount  Float?
+  invoiceDate     String?
+  invoiceNo       String?
+  comments        String?
+  remarks         String?
+  meta            String?     // JSON metadata for sheet-specific extra columns/fields
+  rowIndex        Int?
+  isDeleted       Boolean     @default(false)
+  deletedAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([accountId])
+  @@index([section])
+  @@index([isDeleted])
+}
