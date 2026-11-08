@@ -22,18 +22,18 @@ async function runTestSuite() {
 
   // TEST SUITE 1: Authentication & Internal Allowlist
   console.log('--- TEST SUITE 1: Authentication & Internal Access Control ---');
-  const admin = await prisma.user.findUnique({ where: { email: 'harish.internal@atharvatravels.com' } });
-  const finance = await prisma.user.findUnique({ where: { email: 'bhaskar.internal@atharvatravels.com' } });
-  const ops = await prisma.user.findUnique({ where: { email: 'hemaraj.internal@atharvatravels.com' } });
+  const superAdmin = await prisma.user.findUnique({ where: { email: 'bhaskar.internal@atharvatravels.com' } });
+  const viewerHarish = await prisma.user.findUnique({ where: { email: 'harish.interval@atharvatravels.com' } });
+  const viewerHemaraj = await prisma.user.findUnique({ where: { email: 'hemaraj.interval@atharvatravels.com' } });
 
-  assert(admin !== null && admin.role === 'SUPER_ADMIN', 'Super Admin account (Harish) exists in database');
-  assert(finance !== null && finance.role === 'FINANCE_MANAGER', 'Finance Manager account (Bhaskar) exists in database');
-  assert(ops !== null && ops.role === 'OPERATIONS', 'Operations / HR account (Hemaraj) exists in database');
+  assert(superAdmin !== null && superAdmin.role === 'SUPER_ADMIN', 'Super Admin account (Bhaskar) exists in database with SUPER_ADMIN role');
+  assert(viewerHarish !== null && viewerHarish.role === 'VIEWER', 'Viewer account (Harish) exists in database with VIEWER role');
+  assert(viewerHemaraj !== null && viewerHemaraj.role === 'VIEWER', 'Viewer account (Hemaraj) exists in database with VIEWER role');
 
   const totalUsers = await prisma.user.count({ where: { isAllowed: true } });
   assert(totalUsers === 3, `Strictly 3 authorized accounts configured (found: ${totalUsers})`);
 
-  const passwordMatch = await bcrypt.compare('atharvatravels@internal', admin.passwordHash);
+  const passwordMatch = await bcrypt.compare('atharvatravels@internal', superAdmin.passwordHash);
   assert(passwordMatch === true, 'Bcrypt password hashing verification succeeds with atharvatravels@internal');
 
   const unauthCheck = await prisma.user.findUnique({ where: { email: 'intruder@external.com' } });
@@ -113,7 +113,7 @@ async function runTestSuite() {
       entityType: 'Vehicle',
       entityId: tempVehicle.id,
       displayName: tempVehicle.registrationNumber,
-      deletedByEmail: 'harish.internal@atharvatravels.com',
+      deletedByEmail: 'bhaskar.internal@atharvatravels.com',
       snapshotData: JSON.stringify(tempVehicle),
       restoreStatus: 'DELETED'
     }
@@ -221,7 +221,7 @@ async function runTestSuite() {
       driverId: testDriver.id,
       startDate: new Date('2026-01-01'),
       isCurrent: true,
-      assignedBy: 'harish.internal@atharvatravels.com',
+      assignedBy: 'bhaskar.internal@atharvatravels.com',
     },
   });
   assert(assign1.isCurrent === true, 'Driver assigned to vehicle as active assignment');
@@ -249,7 +249,7 @@ async function runTestSuite() {
       driverId: testDriver2.id,
       startDate: new Date('2026-06-01'),
       isCurrent: true,
-      assignedBy: 'harish.internal@atharvatravels.com',
+      assignedBy: 'bhaskar.internal@atharvatravels.com',
     },
   });
 
@@ -266,6 +266,64 @@ async function runTestSuite() {
   await newPrismaInstance.driver.delete({ where: { id: testDriver.id } });
   await newPrismaInstance.driver.delete({ where: { id: testDriver2.id } });
   assert(true, 'Test fleet records cleaned up safely without affecting production data');
+
+  // TEST SUITE 10: Server-Side RBAC & Prohibited Viewer Mutations Enforcement
+  console.log('\n--- TEST SUITE 10: Strict Server-Side Role-Based Access Control (RBAC) ---');
+  const { isSuperAdmin, isViewer, canMutate, checkPermission } = require('../src/lib/auth.ts');
+
+  // Verify Bhaskar (Super Admin)
+  const bhaskarSession = {
+    id: superAdmin.id,
+    email: superAdmin.email,
+    name: superAdmin.name,
+    role: superAdmin.role,
+    permissions: JSON.parse(superAdmin.permissions),
+  };
+  assert(isSuperAdmin(bhaskarSession) === true, 'Bhaskar is authenticated with SUPER_ADMIN role');
+  assert(canMutate(bhaskarSession) === true, 'Super Admin has mutation authority across all modules');
+  assert(checkPermission(bhaskarSession, 'EDIT_FINANCE') === true, 'Super Admin permitted to edit finance');
+  assert(checkPermission(bhaskarSession, 'DELETE_FINANCE') === true, 'Super Admin permitted to delete records');
+  assert(checkPermission(bhaskarSession, 'MANAGE_USERS') === true, 'Super Admin permitted to manage users');
+  assert(checkPermission(bhaskarSession, 'MANAGE_BACKUPS') === true, 'Super Admin permitted to manage backups');
+  assert(checkPermission(bhaskarSession, 'EXPORT_DATA') === true, 'Super Admin permitted to export data');
+
+  // Verify Harish (Viewer)
+  const harishSession = {
+    id: viewerHarish.id,
+    email: viewerHarish.email,
+    name: viewerHarish.name,
+    role: viewerHarish.role,
+    permissions: JSON.parse(viewerHarish.permissions),
+  };
+  assert(isViewer(harishSession) === true, 'Harish is authenticated with VIEWER role');
+  assert(canMutate(harishSession) === false, 'Viewer is strictly blocked from mutations (canMutate === false)');
+  assert(checkPermission(harishSession, 'VIEW_DASHBOARD') === true, 'Viewer permitted to view dashboard');
+  assert(checkPermission(harishSession, 'VIEW_FINANCE') === true, 'Viewer permitted to view monthly finance');
+  assert(checkPermission(harishSession, 'VIEW_FLEET') === true, 'Viewer permitted to view fleet');
+  assert(checkPermission(harishSession, 'VIEW_REPORTS') === true, 'Viewer permitted to view reports on screen');
+  assert(checkPermission(harishSession, 'EDIT_FINANCE') === false, 'Viewer strictly denied EDIT_FINANCE (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'DELETE_FINANCE') === false, 'Viewer strictly denied DELETE_FINANCE (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'RESTORE_FINANCE') === false, 'Viewer strictly denied RESTORE_FINANCE (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'REVERT_VERSIONS') === false, 'Viewer strictly denied REVERT_VERSIONS (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'CREATE_MONTH') === false, 'Viewer strictly denied CREATE_MONTH (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'APPROVE_PAYMENTS') === false, 'Viewer strictly denied APPROVE_PAYMENTS (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'MANAGE_USERS') === false, 'Viewer strictly denied MANAGE_USERS (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'EXPORT_DATA') === false, 'Viewer strictly denied EXPORT_DATA (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'IMPORT_DATA') === false, 'Viewer strictly denied IMPORT_DATA (HTTP 403 enforcement)');
+  assert(checkPermission(harishSession, 'MANAGE_BACKUPS') === false, 'Viewer strictly denied MANAGE_BACKUPS (HTTP 403 enforcement)');
+
+  // Verify Hemaraj (Viewer)
+  const hemarajSession = {
+    id: viewerHemaraj.id,
+    email: viewerHemaraj.email,
+    name: viewerHemaraj.name,
+    role: viewerHemaraj.role,
+    permissions: JSON.parse(viewerHemaraj.permissions),
+  };
+  assert(isViewer(hemarajSession) === true, 'Hemaraj is authenticated with VIEWER role');
+  assert(canMutate(hemarajSession) === false, 'Hemaraj is strictly blocked from mutations');
+  assert(checkPermission(hemarajSession, 'EDIT_FINANCE') === false, 'Hemaraj denied EDIT_FINANCE');
+  assert(checkPermission(hemarajSession, 'MANAGE_USERS') === false, 'Hemaraj denied MANAGE_USERS');
 
   await newPrismaInstance.$disconnect();
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import prisma from '@/lib/prisma';
-import { signToken, SessionUser } from '@/lib/auth';
+import { signToken, SessionUser, UserRole } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 
 // In-memory rate limiter for login protection
@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
     }
 
     const clientIp = req.headers.get('x-forwarded-for') || '127.0.0.1';
-    const rateKey = `${clientIp}_${email.toLowerCase()}`;
+    const cleanEmail = email.toLowerCase().trim();
+    const rateKey = `${clientIp}_${cleanEmail}`;
     const attempts = loginAttempts.get(rateKey) || { count: 0, lastAttempt: 0 };
 
     if (attempts.count >= 5 && Date.now() - attempts.lastAttempt < 15 * 60 * 1000) {
@@ -26,14 +27,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase().trim() },
+    // Lookup user with spelling fallback for .interval / .internal
+    let user = await prisma.user.findUnique({
+      where: { email: cleanEmail },
     });
+
+    if (!user && cleanEmail.includes('.internal@atharvatravels.com')) {
+      const altEmail = cleanEmail.replace('.internal@', '.interval@');
+      user = await prisma.user.findUnique({ where: { email: altEmail } });
+    } else if (!user && cleanEmail.includes('.interval@atharvatravels.com')) {
+      const altEmail = cleanEmail.replace('.interval@', '.internal@');
+      user = await prisma.user.findUnique({ where: { email: altEmail } });
+    }
 
     if (!user || !user.isAllowed) {
       attempts.count += 1;
       attempts.lastAttempt = Date.now();
       loginAttempts.set(rateKey, attempts);
+
+      await logAudit({
+        userEmail: cleanEmail,
+        action: 'LOGIN',
+        module: 'USERS',
+        entityType: 'UserSession',
+        ipAddress: clientIp,
+        reason: 'Failed login: Unauthorized account or account disabled',
+      });
+
       return NextResponse.json(
         { error: 'Access Denied: Account not authorized for ATHARVA TRAVELS internal portal.' },
         { status: 403 }
@@ -45,11 +65,28 @@ export async function POST(req: NextRequest) {
       attempts.count += 1;
       attempts.lastAttempt = Date.now();
       loginAttempts.set(rateKey, attempts);
+
+      await logAudit({
+        userEmail: user.email,
+        action: 'LOGIN',
+        module: 'USERS',
+        entityType: 'UserSession',
+        entityId: user.id,
+        ipAddress: clientIp,
+        reason: 'Failed login: Invalid password entered',
+      });
+
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
     // Reset rate limiter on success
     loginAttempts.delete(rateKey);
+
+    // Update lastLogin timestamp
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLogin: new Date() },
+    }).catch(() => {});
 
     let perms: string[] = [];
     try {
@@ -62,7 +99,7 @@ export async function POST(req: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role as SessionUser['role'],
+      role: user.role as UserRole,
       permissions: perms,
     };
 
@@ -76,7 +113,7 @@ export async function POST(req: NextRequest) {
       entityType: 'UserSession',
       entityId: user.id,
       ipAddress: clientIp,
-      reason: 'User logged in successfully',
+      reason: `Successful authentication (${user.role})`,
     });
 
     const response = NextResponse.json({
@@ -104,4 +141,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
-

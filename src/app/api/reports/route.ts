@@ -10,6 +10,15 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
+  const isExport = searchParams.get('export') === 'true' || searchParams.get('download') === 'true';
+
+  // Strict export denial for Viewers
+  if (isExport && user.role === 'VIEWER') {
+    return NextResponse.json(
+      { error: 'Forbidden: View-only accounts cannot export or download financial data.' },
+      { status: 403 }
+    );
+  }
   const reportType = searchParams.get('type') || 'monthly_statement';
   const periodId = searchParams.get('periodId');
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
@@ -9,6 +9,10 @@ export const revalidate = 0;
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'VIEWER' || !checkPermission(user, 'MANAGE_FLEET')) {
+    return NextResponse.json({ error: 'Forbidden: View-only accounts cannot assign drivers.' }, { status: 403 });
+  }
 
   try {
     const { vehicleId, driverId, startDate, notes } = await req.json();
@@ -113,6 +117,10 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'VIEWER' || !checkPermission(user, 'MANAGE_FLEET')) {
+    return NextResponse.json({ error: 'Forbidden: View-only accounts cannot unassign drivers.' }, { status: 403 });
+  }
 
   try {
     const { searchParams } = new URL(req.url);

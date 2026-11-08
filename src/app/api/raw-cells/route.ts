@@ -52,3 +52,17 @@ export async function GET(req: NextRequest) {
   });
 }
 
+export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'VIEWER' || user.role !== 'SUPER_ADMIN') {
+    return NextResponse.json(
+      { error: 'Forbidden: View-only accounts cannot import Excel files.' },
+      { status: 403 }
+    );
+  }
+
+  return NextResponse.json({ error: 'Direct import must use authorized administrative workflow.' }, { status: 400 });
+}
+

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 import { softDeleteRecord } from '@/lib/softDelete';
 import { validateRegistrationNumber } from '@/lib/encryption';
@@ -146,6 +146,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+  if (user.role === 'VIEWER' || !checkPermission(user, 'MANAGE_FLEET')) {
+    return NextResponse.json({ error: 'Forbidden: View-only accounts cannot update fleet vehicles.' }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
     const existing = await prisma.vehicle.findUnique({ where: { id: params.id } });
@@ -232,6 +236,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'VIEWER' || !checkPermission(user, 'DELETE_FINANCE')) {
+    return NextResponse.json({ error: 'Forbidden: View-only accounts cannot delete fleet vehicles.' }, { status: 403 });
+  }
 
   try {
     const item = await softDeleteRecord({

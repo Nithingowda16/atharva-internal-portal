@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
 import {
   encryptSensitiveField,
@@ -125,6 +125,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (user.role === 'VIEWER' || !checkPermission(user, 'MANAGE_DRIVERS')) {
+    return NextResponse.json({ error: 'Forbidden: View-only accounts cannot register drivers.' }, { status: 403 });
+  }
 
   try {
     const body = await req.json();

@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -13,9 +14,10 @@ model User {
   email        String          @unique
   name         String
   passwordHash String
-  role         String          // "SUPER_ADMIN", "FINANCE_MANAGER", "OPERATIONS"
+  role         String          // "SUPER_ADMIN", "VIEWER"
   permissions  String          // JSON array of strings
   isAllowed    Boolean         @default(true)
+  lastLogin    DateTime?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
   auditLogs    AuditLog[]
