@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -55,6 +55,15 @@ interface SidebarProps {
 export default function Sidebar({ user: propUser }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [isBankOpen, setIsBankOpen] = useState(pathname.startsWith('/bank'));
+  const prevPathRef = useRef(pathname);
+
+  useEffect(() => {
+    if (pathname.startsWith('/bank') && !prevPathRef.current.startsWith('/bank')) {
+      setIsBankOpen(true);
+    }
+    prevPathRef.current = pathname;
+  }, [pathname]);
   const {
     isMobileOpen,
     closeMobile,
@@ -246,31 +255,51 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
 
                   // Expanded mode: Sub-menu for Bank & Accounts Management
                   if ((item as any).hasSubItems) {
-                    const isBankOpen = pathname.startsWith('/bank');
+                    const isBankActive = pathname.startsWith('/bank');
                     return (
                       <div key={item.href} className="space-y-1">
-                        <Link
-                          href={item.href}
+                        <div
                           className={`flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 ${
-                            isBankOpen
+                            isBankActive
                               ? 'bg-[#007AFF] text-white shadow-apple-btn font-semibold'
                               : 'text-[#1D1D1F] hover:bg-[#F2F2F7] text-[#48484A]'
                           }`}
                         >
-                          <div className="flex items-center space-x-2.5 truncate">
+                          <Link
+                            href={item.href}
+                            onClick={() => setIsBankOpen(true)}
+                            className="flex items-center space-x-2.5 truncate flex-1 focus:outline-hidden"
+                          >
                             <Icon
                               className={`w-4 h-4 shrink-0 ${
-                                isBankOpen ? 'text-white' : 'text-[#86868B]'
+                                isBankActive ? 'text-white' : 'text-[#86868B]'
                               }`}
                             />
                             <span className="truncate">{item.label}</span>
-                          </div>
-                          {isBankOpen ? (
-                            <ChevronDown className="w-3.5 h-3.5 text-white/80 shrink-0" />
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5 text-[#86868B] shrink-0" />
-                          )}
-                        </Link>
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsBankOpen((prev) => !prev);
+                            }}
+                            aria-label={isBankOpen ? 'Collapse Bank & Accounts submenu' : 'Expand Bank & Accounts submenu'}
+                            title={isBankOpen ? 'Collapse submenu' : 'Expand submenu'}
+                            className={`p-1 -mr-1 rounded-md transition-colors flex items-center justify-center focus:outline-hidden ${
+                              isBankActive
+                                ? 'hover:bg-white/20 active:bg-white/30 text-white'
+                                : 'hover:bg-[#E5E5EA] active:bg-[#D1D1D6] text-[#86868B]'
+                            }`}
+                          >
+                            {isBankOpen ? (
+                              <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                          </button>
+                        </div>
 
                         {isBankOpen && (
                           <div className="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-[#007AFF]/20 ml-4 my-1">
@@ -442,32 +471,54 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
                   if ((item as any).hasSubItems) {
-                    const isBankOpen = pathname.startsWith('/bank');
+                    const isBankActive = pathname.startsWith('/bank');
                     return (
                       <div key={item.href} className="space-y-1">
-                        <Link
-                          href={item.href}
-                          onClick={closeMobile}
+                        <div
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${
-                            isBankOpen
+                            isBankActive
                               ? 'bg-[#007AFF] text-white shadow-apple-btn font-semibold'
                               : 'text-[#1D1D1F] hover:bg-[#F2F2F7] text-[#48484A]'
                           }`}
                         >
-                          <div className="flex items-center space-x-3 truncate">
+                          <Link
+                            href={item.href}
+                            onClick={() => {
+                              setIsBankOpen(true);
+                              closeMobile();
+                            }}
+                            className="flex items-center space-x-3 truncate flex-1 focus:outline-hidden"
+                          >
                             <Icon
                               className={`w-4 h-4 shrink-0 ${
-                                isBankOpen ? 'text-white' : 'text-[#86868B]'
+                                isBankActive ? 'text-white' : 'text-[#86868B]'
                               }`}
                             />
                             <span className="truncate">{item.label}</span>
-                          </div>
-                          {isBankOpen ? (
-                            <ChevronDown className="w-3.5 h-3.5 text-white/80 shrink-0" />
-                          ) : (
-                            <ChevronRight className="w-3.5 h-3.5 text-white/80 shrink-0" />
-                          )}
-                        </Link>
+                          </Link>
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setIsBankOpen((prev) => !prev);
+                            }}
+                            aria-label={isBankOpen ? 'Collapse Bank & Accounts submenu' : 'Expand Bank & Accounts submenu'}
+                            title={isBankOpen ? 'Collapse submenu' : 'Expand submenu'}
+                            className={`p-1.5 -mr-1 rounded-lg transition-colors flex items-center justify-center focus:outline-hidden ${
+                              isBankActive
+                                ? 'hover:bg-white/20 active:bg-white/30 text-white'
+                                : 'hover:bg-[#E5E5EA] active:bg-[#D1D1D6] text-[#86868B]'
+                            }`}
+                          >
+                            {isBankOpen ? (
+                              <ChevronDown className="w-4 h-4 shrink-0" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 shrink-0" />
+                            )}
+                          </button>
+                        </div>
 
                         {isBankOpen && (
                           <div className="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-[#007AFF]/20 ml-5 my-1">

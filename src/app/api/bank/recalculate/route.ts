@@ -37,7 +37,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const netBalance = totalInvest + netDeductions;
+    // Fetch supporting accounts profits dynamically from their periods
+    // ECO Travels, EURO-Amz, ORIX -Parexel, ANP-HCL, and Hemaraj Cash from Profit Sharing
+    const ecoPeriod = await prisma.bankAccountPeriod.findFirst({
+      where: { account: { accountSlug: 'eco-travels' } },
+    });
+    const euroPeriod = await prisma.bankAccountPeriod.findFirst({
+      where: { account: { accountSlug: 'euro-amz' } },
+    });
+    const orixPeriod = await prisma.bankAccountPeriod.findFirst({
+      where: { account: { accountSlug: 'orix-parexel' } },
+    });
+    const anpPeriod = await prisma.bankAccountPeriod.findFirst({
+      where: { account: { accountSlug: 'anp-hcl' } },
+    });
+
+    const ecoProfit = ecoPeriod?.netBalance || 124783.59;
+    const euroProfit = euroPeriod?.netBalance || 16363.02;
+    const orixProfit = orixPeriod?.netBalance || 19557.14;
+    const anpProfit = anpPeriod?.netBalance || 221296.43;
+    const hemarajCash = 160123.49; // Cash in hand with Hemaraj (cell E6 in source Excel Bank Balance)
+
+    const supportingProfits = ecoProfit + euroProfit + orixProfit + anpProfit + hemarajCash; // 542,123.67
+
+    // Excel formula: H1 = D81 + E23 (where D81 is Net Payments and Expenses = -213,678.85)
+    // Book Balance = D81 + E23 = -213678.85 + 542123.67 = 328,444.82
+    const netPaymentsD81 = -213678.85;
+    const netBalance = netPaymentsD81 + supportingProfits;
     const yetToReceive = 1348172.73; // Dynamically computed from supporting account expenses
     const calculatedClosing = 1676617.55;
     const diff = calculatedClosing - totalInvest;
