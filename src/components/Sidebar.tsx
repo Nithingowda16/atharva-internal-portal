@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Calendar,
   Truck,
+  CarFront,
   Building2,
   Receipt,
   Scissors,
@@ -76,7 +77,8 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
     {
       title: 'Management',
       items: [
-        { label: 'Vehicle Management', href: '/vehicles', icon: Truck, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
+        { label: 'Fleet Management', href: '/fleet', icon: Truck, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
+        { label: 'Vehicle Management', href: '/vehicles', icon: CarFront, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS'] },
         { label: 'Company Management', href: '/companies', icon: Building2, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER'] },
       ],
     },

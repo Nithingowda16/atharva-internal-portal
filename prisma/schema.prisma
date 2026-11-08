@@ -70,21 +70,74 @@ model FinancialPeriod {
 }
 
 model Vehicle {
-  id                 String                 @id @default(cuid())
-  registrationNumber String                 // Can be "KA-UNSPECIFIED-SEC46"
-  vehicleType        String                 @default("Vehicle - 4-Seater")
-  isActive           Boolean                @default(true)
+  id                 String                    @id @default(cuid())
+  registrationNumber String                    // Can be "KA-UNSPECIFIED-SEC46"
+  carName            String?                   // e.g. "Innova Crysta #1"
+  make               String?                   // e.g. "Toyota", "Maruti Suzuki"
+  model              String?                   // e.g. "Innova Crysta", "Dzire"
+  category           String?                   @default("SEDAN") // "SEDAN", "SUV", "HATCHBACK", "TEMPO", "BUS"
+  vehicleType        String                    @default("Vehicle - 4-Seater")
+  seatingCapacity    Int?                      @default(4)
+  fuelType           String?                   // "DIESEL", "PETROL", "CNG", "ELECTRIC", "HYBRID"
+  status             String                    @default("ACTIVE") // "ACTIVE", "INACTIVE", "UNDER_MAINTENANCE", "RETIRED"
+  isActive           Boolean                   @default(true)
   ownerName          String?
   contactNumber      String?
   bankAccountMasked  String?
   bankName           String?
   ifscCode           String?
   notes              String?
-  isDeleted          Boolean                @default(false)
+  remarks            String?
+  isDeleted          Boolean                   @default(false)
   deletedAt          DateTime?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
   monthlyRecords     VehicleMonthlyRecord[]
+  assignments        VehicleDriverAssignment[]
+
+  @@index([status])
+  @@index([isDeleted])
+}
+
+model Driver {
+  id            String                    @id @default(cuid())
+  name          String
+  panEncrypted  String?
+  panMasked     String?
+  dlEncrypted   String?
+  dlMasked      String?
+  licenceExpiry DateTime?
+  phone         String?
+  status        String                    @default("ACTIVE") // "ACTIVE", "INACTIVE", "ON_LEAVE", "TERMINATED"
+  remarks       String?
+  isDeleted     Boolean                   @default(false)
+  deletedAt     DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  assignments   VehicleDriverAssignment[]
+
+  @@index([status])
+  @@index([licenceExpiry])
+  @@index([isDeleted])
+}
+
+model VehicleDriverAssignment {
+  id         String    @id @default(cuid())
+  vehicleId  String
+  vehicle    Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driverId   String
+  driver     Driver    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  isCurrent  Boolean   @default(true)
+  assignedBy String?   // email of user who assigned
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([vehicleId])
+  @@index([driverId])
+  @@index([isCurrent])
 }
 
 model Company {

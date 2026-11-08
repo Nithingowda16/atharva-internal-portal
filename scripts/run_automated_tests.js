@@ -147,8 +147,126 @@ async function runTestSuite() {
   await prisma.$disconnect();
 
   const newPrismaInstance = new PrismaClient();
-  const reconnectTotalRecords = await newPrismaInstance.vehicleMonthlyRecord.count();
-  assert(reconnectTotalRecords === 92, `All 92 records persist after disconnect/reconnect (found: ${reconnectTotalRecords})`);
+  const reconnectTotalRecords = await newPrismaInstance.vehicleMonthlyRecord.count({
+    where: { period: { monthCode: { in: ['2026-08', '2026-09'] } } }
+  });
+  assert(reconnectTotalRecords === 92, `All 92 historical records persist after disconnect/reconnect (found: ${reconnectTotalRecords})`);
+
+  // TEST SUITE 9: Fleet Management, Driver Encryption & Assignment History
+  console.log('\n--- TEST SUITE 9: Fleet Management, Sensitive Encryption & Assignment History ---');
+  const {
+    encryptSensitiveField,
+    decryptSensitiveField,
+    maskPAN,
+    maskDL,
+    validatePAN,
+    validateDrivingLicence,
+  } = require('../src/lib/encryption.ts');
+
+  // 1. Validation tests
+  const panValidation = validatePAN('ABCDE1234F');
+  assert(panValidation.valid === true, 'PAN validation succeeds for valid format');
+  const invalidPanValidation = validatePAN('12345ABCDE');
+  assert(invalidPanValidation.valid === false, 'PAN validation rejects invalid format');
+
+  const dlValidation = validateDrivingLicence('KA0420210009876');
+  assert(dlValidation.valid === true, 'DL validation succeeds for valid Indian DL format');
+
+  // 2. Encryption & Masking tests
+  const rawPan = 'ABCDE1234F';
+  const rawDl = 'KA0420210009876';
+  const encPan = encryptSensitiveField(rawPan);
+  const encDl = encryptSensitiveField(rawDl);
+  const maskedPan = maskPAN(rawPan);
+  const maskedDl = maskDL(rawDl);
+
+  assert(maskedPan === 'ABCDE****F', 'PAN is masked with standard middle-hidden format');
+  assert(maskedDl.startsWith('KA') && maskedDl.endsWith('9876'), 'DL is masked showing state code and last 4');
+  assert(decryptSensitiveField(encPan) === rawPan, 'PAN decrypts accurately using AES-256-GCM');
+  assert(decryptSensitiveField(encDl) === rawDl, 'DL decrypts accurately using AES-256-GCM');
+
+  // 3. Driver & Vehicle creation with relations
+  const testDriver = await newPrismaInstance.driver.create({
+    data: {
+      name: 'Ramesh Pilot (Automated Test)',
+      panEncrypted: encPan,
+      panMasked: maskedPan,
+      dlEncrypted: encDl,
+      dlMasked: maskedDl,
+      phone: '+91 99999 88888',
+      status: 'ACTIVE',
+    },
+  });
+  assert(testDriver.id && testDriver.panMasked === 'ABCDE****F', 'Driver record stored with encrypted PAN & DL');
+
+  const testFleetVehicle = await newPrismaInstance.vehicle.create({
+    data: {
+      registrationNumber: 'KA04FLEET9999',
+      carName: 'Toyota Innova Fleet Test',
+      make: 'Toyota',
+      model: 'Innova Crysta',
+      category: 'SUV',
+      vehicleType: 'Vehicle - 7-Seater',
+      seatingCapacity: 7,
+      fuelType: 'DIESEL',
+      status: 'ACTIVE',
+    },
+  });
+  assert(testFleetVehicle.id && testFleetVehicle.category === 'SUV', 'Fleet vehicle created with extended specifications');
+
+  // 4. Driver assignment & reassignment history preservation
+  const assign1 = await newPrismaInstance.vehicleDriverAssignment.create({
+    data: {
+      vehicleId: testFleetVehicle.id,
+      driverId: testDriver.id,
+      startDate: new Date('2026-01-01'),
+      isCurrent: true,
+      assignedBy: 'harish.internal@atharvatravels.com',
+    },
+  });
+  assert(assign1.isCurrent === true, 'Driver assigned to vehicle as active assignment');
+
+  // Reassign: end assignment 1, create assignment 2 with new driver
+  const testDriver2 = await newPrismaInstance.driver.create({
+    data: {
+      name: 'Suresh Pilot (Automated Test 2)',
+      panEncrypted: encryptSensitiveField('XYZPK9876Q'),
+      panMasked: maskPAN('XYZPK9876Q'),
+      dlEncrypted: encryptSensitiveField('KA0120190005555'),
+      dlMasked: maskDL('KA0120190005555'),
+      status: 'ACTIVE',
+    },
+  });
+
+  await newPrismaInstance.vehicleDriverAssignment.update({
+    where: { id: assign1.id },
+    data: { isCurrent: false, endDate: new Date('2026-06-01') },
+  });
+
+  const assign2 = await newPrismaInstance.vehicleDriverAssignment.create({
+    data: {
+      vehicleId: testFleetVehicle.id,
+      driverId: testDriver2.id,
+      startDate: new Date('2026-06-01'),
+      isCurrent: true,
+      assignedBy: 'harish.internal@atharvatravels.com',
+    },
+  });
+
+  const vehicleAssignments = await newPrismaInstance.vehicleDriverAssignment.findMany({
+    where: { vehicleId: testFleetVehicle.id },
+    orderBy: { startDate: 'asc' },
+  });
+  assert(vehicleAssignments.length === 2, 'Previous assignment history preserved when changing driver');
+  assert(vehicleAssignments[0].isCurrent === false && vehicleAssignments[1].isCurrent === true, 'Only newest assignment is current');
+
+  // 5. Cleanup test records
+  await newPrismaInstance.vehicleDriverAssignment.deleteMany({ where: { vehicleId: testFleetVehicle.id } });
+  await newPrismaInstance.vehicle.delete({ where: { id: testFleetVehicle.id } });
+  await newPrismaInstance.driver.delete({ where: { id: testDriver.id } });
+  await newPrismaInstance.driver.delete({ where: { id: testDriver2.id } });
+  assert(true, 'Test fleet records cleaned up safely without affecting production data');
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');

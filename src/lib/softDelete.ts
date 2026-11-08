@@ -3,7 +3,7 @@ import { logAudit } from './audit';
 import { recalculateVehicleRecord } from './calculationEngine';
 
 export async function softDeleteRecord(params: {
-  entityType: 'Vehicle' | 'VehicleMonthlyRecord' | 'BillingLine' | 'FinancialAdjustment' | 'FinancialPeriod';
+  entityType: 'Vehicle' | 'VehicleMonthlyRecord' | 'BillingLine' | 'FinancialAdjustment' | 'FinancialPeriod' | 'Driver';
   entityId: string;
   userEmail: string;
   reason?: string;
@@ -72,6 +72,16 @@ export async function softDeleteRecord(params: {
     snapshotData = p;
 
     await prisma.financialPeriod.update({
+      where: { id: entityId },
+      data: { isDeleted: true, deletedAt: new Date() },
+    });
+  } else if (entityType === 'Driver') {
+    const d = await prisma.driver.findUnique({ where: { id: entityId } });
+    if (!d) throw new Error('Driver not found');
+    displayName = `${d.name} (Driver)`;
+    snapshotData = { id: d.id, name: d.name, phone: d.phone, status: d.status };
+
+    await prisma.driver.update({
       where: { id: entityId },
       data: { isDeleted: true, deletedAt: new Date() },
     });
@@ -146,6 +156,11 @@ export async function restoreRecord(recycleBinItemId: string, userEmail: string)
       where: { id: entityId },
       data: { isDeleted: false, deletedAt: null },
     });
+  } else if (entityType === 'Driver') {
+    await prisma.driver.update({
+      where: { id: entityId },
+      data: { isDeleted: false, deletedAt: null },
+    });
   }
 
   await prisma.recycleBinItem.update({
@@ -188,6 +203,8 @@ export async function permanentPurgeRecord(recycleBinItemId: string, userEmail: 
     await prisma.financialAdjustment.delete({ where: { id: entityId } });
   } else if (entityType === 'FinancialPeriod') {
     await prisma.financialPeriod.delete({ where: { id: entityId } });
+  } else if (entityType === 'Driver') {
+    await prisma.driver.delete({ where: { id: entityId } });
   }
 
   await prisma.recycleBinItem.update({
