@@ -1,5 +1,13 @@
 import jwt from 'jsonwebtoken';
-import prisma from './prisma';
+import { PrismaClient } from '@prisma/client';
+
+const globalForPrisma = global as unknown as { prisma?: PrismaClient };
+const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
+  });
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 const JWT_SECRET = process.env.JWT_SECRET || 'atharva_travels_internal_secret_key_2026_xyz';
 const COOKIE_NAME = 'atharva_session_token';
