@@ -130,46 +130,9 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
           isDesktopCollapsed ? 'w-[76px]' : 'w-[260px]'
         }`}
       >
-        {/* Sidebar Header: Compact Collapse / Expand bar */}
-        <div
-          className={`h-11 border-b border-[#E5E5EA] flex items-center bg-[#FFFFFF] shrink-0 px-3.5 ${
-            isDesktopCollapsed ? 'justify-center px-1' : 'justify-between'
-          }`}
-        >
-          {!isDesktopCollapsed && (
-            <span className="text-[11px] font-bold text-[#86868B] tracking-wider uppercase">
-              Navigation
-            </span>
-          )}
-          <button
-            type="button"
-            onClick={toggleDesktopCollapse}
-            aria-label={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="p-1 rounded-md text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7] transition-colors focus:outline-hidden cursor-pointer"
-          >
-            {isDesktopCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-
-        {/* Collapsed Mode Expand Pill (when in 76px mode) */}
-        {isDesktopCollapsed && (
-          <div className="pt-2 pb-1 px-2 flex justify-center">
-            <button
-              type="button"
-              onClick={toggleDesktopCollapse}
-              aria-label="Expand sidebar"
-              title="Expand sidebar (Desktop)"
-              className="w-10 h-7 rounded-lg bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#86868B] hover:text-[#1D1D1F] flex items-center justify-center transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-        )}
-
         {/* Navigation Sections */}
         <nav
-          className={`flex-1 overflow-y-auto py-3 space-y-4 custom-scrollbar ${
+          className={`flex-1 overflow-y-auto py-4 space-y-4 custom-scrollbar ${
             isDesktopCollapsed ? 'px-2' : 'px-3'
           }`}
         >

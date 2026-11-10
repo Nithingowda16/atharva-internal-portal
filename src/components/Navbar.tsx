@@ -7,8 +7,6 @@ import GlobalSearch from '@/components/GlobalSearch';
 import PageHeader from '@/components/PageHeader';
 import {
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   LogOut,
 } from 'lucide-react';
 
@@ -64,42 +62,34 @@ export default function Navbar({ title, subtitle, onRefresh }: NavbarProps) {
     <>
       {/* Top Header Bar – Full width edge-to-edge above the entire app, Google Skills style */}
       <header className="h-16 bg-[#FFFFFF] border-b border-[#E5E5EA] px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 transition-all select-none w-full shrink-0 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        {/* Left side: Hamburger Toggle + Brand Logo & Title */}
-        <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-          {/* Mobile Hamburger Button */}
+        {/* Left side: Exactly ONE Navigation Toggle Button + Large Transparent Logo & Title */}
+        <div className="flex items-center space-x-3 shrink-0">
+          {/* ONLY ONE Navigation Close / Toggle Button */}
           <button
             type="button"
-            onClick={toggleMobile}
-            aria-label="Open navigation menu"
-            aria-expanded={isMobileOpen}
-            aria-controls="mobile-navigation-drawer"
-            className="p-2 -ml-1 rounded-xl text-[#1D1D1F] hover:bg-[#F2F2F7] active:scale-95 transition-all focus:outline-hidden md:hidden shrink-0 cursor-pointer"
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                toggleMobile();
+              } else {
+                toggleDesktopCollapse();
+              }
+            }}
+            aria-label="Toggle navigation"
+            title={isDesktopCollapsed ? 'Expand sidebar' : 'Close sidebar'}
+            className="p-2 -ml-1 rounded-xl text-[#1D1D1F] hover:bg-[#F2F2F7] active:scale-95 transition-all focus:outline-hidden cursor-pointer shrink-0"
           >
             <Menu className="w-5 h-5 text-[#1D1D1F]" />
           </button>
 
-          {/* Desktop Sidebar Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleDesktopCollapse}
-            aria-label={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden md:inline-flex p-1.5 -ml-1 mr-1 rounded-lg text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7] transition-colors focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] shrink-0 cursor-pointer"
-          >
-            {isDesktopCollapsed ? (
-              <PanelLeftOpen className="w-4 h-4 text-[#1D1D1F]" />
-            ) : (
-              <PanelLeftClose className="w-4 h-4 text-[#86868B]" />
-            )}
-          </button>
-
-          {/* Brand Logo & Name (visible on desktop and mobile, Google Skills style) */}
+          {/* Large Atharva Travels Logo – Transparent to BG (No white box, no border) */}
           <div className="flex items-center space-x-2.5 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-[#FFFFFF] border border-[#E5E5EA] p-1 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden">
-              <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="Atharva Travels"
+              className="h-10 sm:h-11 w-auto object-contain bg-transparent shrink-0"
+            />
             <div className="leading-tight hidden xs:block">
-              <h1 className="font-bold text-[#1D1D1F] text-xs sm:text-[13px] tracking-tight truncate">
+              <h1 className="font-bold text-[#1D1D1F] text-sm sm:text-base tracking-tight truncate">
                 ATHARVA TRAVELS
               </h1>
               <p className="text-[10px] text-[#86868B] font-medium truncate">Finance Portal</p>
