@@ -81,19 +81,13 @@ export default function Navbar({ title, subtitle, onRefresh }: NavbarProps) {
             <Menu className="w-5 h-5 text-[#1D1D1F]" />
           </button>
 
-          {/* Large Atharva Travels Logo – Transparent to BG (No white box, no border) */}
-          <div className="flex items-center space-x-2.5 shrink-0">
+          {/* Official Atharva Travels Logo – Full Logo with Handshake & Let's Drive Together (Transparent to BG) */}
+          <div className="flex items-center shrink-0">
             <img
-              src="/logo.png"
-              alt="Atharva Travels"
-              className="h-10 sm:h-11 w-auto object-contain bg-transparent shrink-0"
+              src="/atharva-logo-transparent.png"
+              alt="Atharva Travels - Let's Drive Together"
+              className="h-10 sm:h-12 w-auto object-contain bg-transparent shrink-0"
             />
-            <div className="leading-tight hidden xs:block">
-              <h1 className="font-bold text-[#1D1D1F] text-sm sm:text-base tracking-tight truncate">
-                ATHARVA TRAVELS
-              </h1>
-              <p className="text-[10px] text-[#86868B] font-medium truncate">Finance Portal</p>
-            </div>
           </div>
         </div>
 

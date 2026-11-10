@@ -317,16 +317,12 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
       >
         {/* Mobile Drawer Header */}
         <div className="h-16 px-4 border-b border-[#E5E5EA] flex items-center justify-between bg-[#FFFFFF] shrink-0">
-          <div className="flex items-center space-x-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-[#FFFFFF] border border-[#E5E5EA] p-1 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden">
-              <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
-            </div>
-            <div className="leading-tight truncate">
-              <h2 className="font-bold text-[#1D1D1F] text-[13px] tracking-tight truncate">
-                ATHARVA TRAVELS
-              </h2>
-              <p className="text-[10px] text-[#86868B] font-medium truncate">Finance Portal</p>
-            </div>
+          <div className="flex items-center shrink-0">
+            <img
+              src="/atharva-logo-transparent.png"
+              alt="Atharva Travels"
+              className="h-10 w-auto object-contain bg-transparent shrink-0"
+            />
           </div>
 
           <button
