@@ -15,23 +15,50 @@ export async function GET(req: NextRequest) {
   const q = searchParams.get('q')?.trim() || '';
 
   if (!q || q.length < 2) {
-    return NextResponse.json({ success: true, results: [] });
+    return NextResponse.json(
+      { success: true, results: [] },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
   }
 
+  const qClean = q.replace(/[\s\-_]/g, '');
+
   try {
-    // 1. Search Vehicles (by registration number, car name, owner name, make, model)
+    // 1. Search Vehicles dynamically from live database
+    // Matches registration number (with or without spaces), car name, make, model, owner, or assigned driver name
+    const vehicleOr: any[] = [
+      { registrationNumber: { contains: q, mode: 'insensitive' } },
+      { carName: { contains: q, mode: 'insensitive' } },
+      { ownerName: { contains: q, mode: 'insensitive' } },
+      { make: { contains: q, mode: 'insensitive' } },
+      { model: { contains: q, mode: 'insensitive' } },
+      {
+        assignments: {
+          some: {
+            driver: {
+              name: { contains: q, mode: 'insensitive' },
+            },
+          },
+        },
+      },
+    ];
+
+    if (qClean && qClean !== q && qClean.length >= 2) {
+      vehicleOr.push({ registrationNumber: { contains: qClean, mode: 'insensitive' } });
+    }
+
     const vehicles = await prisma.vehicle.findMany({
       where: {
         isDeleted: false,
-        OR: [
-          { registrationNumber: { contains: q, mode: 'insensitive' } },
-          { carName: { contains: q, mode: 'insensitive' } },
-          { ownerName: { contains: q, mode: 'insensitive' } },
-          { make: { contains: q, mode: 'insensitive' } },
-          { model: { contains: q, mode: 'insensitive' } },
-        ],
+        OR: vehicleOr,
       },
-      take: 10,
+      take: 12,
       include: {
         assignments: {
           orderBy: { startDate: 'desc' },
@@ -50,16 +77,40 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // 2. Search Drivers (by name, phone)
+    // 2. Search Drivers dynamically from live database
+    // Matches driver name, phone, or assigned vehicle registration number
+    const driverOr: any[] = [
+      { name: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+      {
+        assignments: {
+          some: {
+            vehicle: {
+              registrationNumber: { contains: q, mode: 'insensitive' },
+            },
+          },
+        },
+      },
+    ];
+
+    if (qClean && qClean !== q && qClean.length >= 2) {
+      driverOr.push({
+        assignments: {
+          some: {
+            vehicle: {
+              registrationNumber: { contains: qClean, mode: 'insensitive' },
+            },
+          },
+        },
+      });
+    }
+
     const drivers = await prisma.driver.findMany({
       where: {
         isDeleted: false,
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { phone: { contains: q, mode: 'insensitive' } },
-        ],
+        OR: driverOr,
       },
-      take: 10,
+      take: 12,
       include: {
         assignments: {
           orderBy: { startDate: 'desc' },
@@ -386,11 +437,20 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({
-      success: true,
-      query: q,
-      results: [...vehicleResults, ...driverResults],
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        query: q,
+        results: [...vehicleResults, ...driverResults],
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+        },
+      }
+    );
   } catch (err: any) {
     console.error('Search API error:', err);
     return NextResponse.json(
