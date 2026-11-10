@@ -3,20 +3,25 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
+import Navbar from './Navbar';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
 
 function LayoutInner({ children }: { children: React.ReactNode }) {
   const { isDesktopCollapsed } = useSidebar();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#F5F5F7] text-[#1D1D1F]">
-      <Sidebar />
-      <div
-        className={`flex-1 flex flex-col min-w-0 w-full overflow-x-hidden overflow-y-auto custom-scrollbar transition-[margin-left] duration-250 ease-in-out ml-0 ${
-          isDesktopCollapsed ? 'md:ml-[76px]' : 'md:ml-[260px]'
-        }`}
-      >
-        <main className="flex-1 p-3.5 sm:p-5 lg:p-8 w-full max-w-full">
+    <div className="flex flex-col h-screen overflow-hidden bg-[#F5F5F7] text-[#1D1D1F]">
+      {/* 1. TOP HEADER BAR: Full width at the very top, exactly like Google Skills */}
+      <Navbar />
+
+      {/* 2. BODY CONTAINER: Sidebar on left + Main Content on right */}
+      <div className="flex flex-1 min-h-0 overflow-hidden relative">
+        <Sidebar />
+        <main
+          className={`flex-1 p-3.5 sm:p-5 lg:p-8 w-full max-w-full overflow-y-auto custom-scrollbar transition-[margin-left] duration-250 ease-in-out ml-0 ${
+            isDesktopCollapsed ? 'md:ml-[76px]' : 'md:ml-[260px]'
+          }`}
+        >
           {children}
         </main>
       </div>

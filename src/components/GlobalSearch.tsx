@@ -110,10 +110,9 @@ export default function GlobalSearch() {
   };
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto">
-      {/* Search Input Bar */}
-      <div className="relative flex items-center">
-        <Search className="w-4 h-4 text-[#86868B] absolute left-3.5 pointer-events-none shrink-0" />
+    <div ref={searchRef} className="relative w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl mx-auto">
+      {/* Search Input Bar – Styled like Google Skills search pill */}
+      <div className="relative flex items-center group">
         <input
           ref={inputRef}
           type="text"
@@ -126,21 +125,38 @@ export default function GlobalSearch() {
             if (query.length >= 2) setIsOpen(true);
           }}
           placeholder="Search car number or driver name..."
-          className="w-full pl-9 pr-9 py-1.5 sm:py-2 text-xs rounded-full bg-[#F2F2F7] border border-[#E5E5EA] text-[#1D1D1F] placeholder-[#86868B] focus:outline-hidden focus:bg-[#FFFFFF] focus:border-[#007AFF] focus:ring-2 focus:ring-[#007AFF]/20 transition-all duration-150"
+          className="w-full pl-4 pr-16 sm:pr-20 py-2 sm:py-2.5 text-xs sm:text-[13px] rounded-full bg-[#F0F4F9] hover:bg-[#E9EEF6] border border-[#E1E5EA] text-[#1D1D1F] placeholder-[#5F6368] focus:outline-hidden focus:bg-[#FFFFFF] focus:border-[#007AFF] focus:ring-4 focus:ring-[#007AFF]/15 transition-all duration-150 shadow-2xs"
         />
-        {query ? (
+
+        {/* Right side icons: Shortcut badge & Search Magnifying Glass (Google Skills style) */}
+        <div className="absolute right-2 sm:right-3 flex items-center space-x-1.5">
+          {query ? (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="p-1 rounded-full text-[#5F6368] hover:text-[#1D1D1F] hover:bg-[#DDE3EA] transition-colors"
+              title="Clear search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-[#5F6368] bg-[#FFFFFF] border border-[#E1E5EA] rounded shadow-2xs pointer-events-none">
+              ⌘K
+            </kbd>
+          )}
+
           <button
             type="button"
-            onClick={handleClear}
-            className="absolute right-2.5 p-1 rounded-full text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#E5E5EA] transition-colors"
+            onClick={() => {
+              inputRef.current?.focus();
+              if (query.length >= 2) setIsOpen(true);
+            }}
+            className="p-1.5 rounded-full text-[#5F6368] hover:text-[#007AFF] hover:bg-[#DDE3EA] transition-colors"
+            title="Search"
           >
-            <X className="w-3.5 h-3.5" />
+            <Search className="w-4 h-4" />
           </button>
-        ) : (
-          <kbd className="hidden sm:inline-flex items-center absolute right-3 px-1.5 py-0.5 text-[9px] font-mono text-[#86868B] bg-[#FFFFFF] border border-[#E5E5EA] rounded shadow-2xs pointer-events-none">
-            ⌘K
-          </kbd>
-        )}
+        </div>
       </div>
 
       {/* Autocomplete Dropdown List */}

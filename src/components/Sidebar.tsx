@@ -119,57 +119,36 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
     <>
       {/* =========================================================================
           1. DESKTOP & TABLET SIDEBAR (Permanently mounted on md: and above)
+          - Positioned directly below Top Navigation Bar (top-16)
           - Expanded: ~260px width
           - Collapsed: ~76px width
           - Smooth 250ms CSS width transition
           ========================================================================= */}
       <aside
         aria-label="Desktop Navigation"
-        className={`hidden md:flex flex-col h-screen fixed left-0 top-0 z-30 select-none bg-[#FFFFFF] border-r border-[#E5E5EA] shadow-[1px_0_10px_rgba(0,0,0,0.02)] transition-[width] duration-250 ease-in-out ${
+        className={`hidden md:flex flex-col h-[calc(100vh-4rem)] fixed left-0 top-16 z-30 select-none bg-[#FFFFFF] border-r border-[#E5E5EA] shadow-[1px_0_10px_rgba(0,0,0,0.02)] transition-[width] duration-250 ease-in-out ${
           isDesktopCollapsed ? 'w-[76px]' : 'w-[260px]'
         }`}
       >
-        {/* Brand Header & Collapse Toggle */}
+        {/* Sidebar Header: Compact Collapse / Expand bar */}
         <div
-          className={`h-16 border-b border-[#E5E5EA] flex items-center bg-[#FFFFFF] shrink-0 ${
-            isDesktopCollapsed ? 'justify-center px-2' : 'justify-between px-4'
+          className={`h-11 border-b border-[#E5E5EA] flex items-center bg-[#FFFFFF] shrink-0 px-3.5 ${
+            isDesktopCollapsed ? 'justify-center px-1' : 'justify-between'
           }`}
         >
-          {/* Logo & Text when expanded */}
-          {!isDesktopCollapsed ? (
-            <div className="flex items-center space-x-3 overflow-hidden">
-              <div className="w-9 h-9 rounded-xl bg-[#FFFFFF] border border-[#E5E5EA] p-1 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden">
-                <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
-              </div>
-              <div className="leading-tight truncate">
-                <h1 className="font-bold text-[#1D1D1F] text-[13px] tracking-tight truncate">
-                  ATHARVA TRAVELS
-                </h1>
-                <p className="text-[10px] text-[#86868B] font-medium truncate">Finance Portal</p>
-              </div>
-            </div>
-          ) : (
-            /* Icon emblem when collapsed */
-            <div
-              className="w-9 h-9 rounded-xl bg-[#FFFFFF] border border-[#E5E5EA] p-1 flex items-center justify-center shadow-2xs shrink-0 overflow-hidden cursor-pointer"
-              onClick={toggleDesktopCollapse}
-              title="Click to expand sidebar"
-            >
-              <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
-            </div>
+          {!isDesktopCollapsed && (
+            <span className="text-[11px] font-bold text-[#86868B] tracking-wider uppercase">
+              Navigation
+            </span>
           )}
-
-          {/* Toggle Button */}
           <button
             type="button"
             onClick={toggleDesktopCollapse}
             aria-label={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             title={isDesktopCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className={`p-1.5 rounded-lg text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7] transition-colors focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] ${
-              isDesktopCollapsed ? 'hidden' : 'block shrink-0'
-            }`}
+            className="p-1 rounded-md text-[#86868B] hover:text-[#1D1D1F] hover:bg-[#F2F2F7] transition-colors focus:outline-hidden cursor-pointer"
           >
-            <ChevronLeft className="w-4 h-4" />
+            {isDesktopCollapsed ? <ChevronRight className="w-3.5 h-3.5" /> : <ChevronLeft className="w-3.5 h-3.5" />}
           </button>
         </div>
 
