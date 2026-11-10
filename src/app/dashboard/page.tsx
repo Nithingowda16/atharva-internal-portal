@@ -11,7 +11,6 @@ import {
   Clock,
   Truck,
   PauseCircle,
-  AlertTriangle,
   ArrowUpRight,
   Download,
   Building2,
@@ -100,31 +99,6 @@ export default function DashboardPage() {
         onRefresh={() => fetchDashboard(selectedPeriod)}
       />
 
-      {/* Flagged #REF! Warning Card */}
-      {kpis.refErrorsCount > 0 && (
-        <div className="p-4 rounded-[20px] bg-[#FFF5E5] border border-[#FFE4B8] flex items-center justify-between shadow-2xs">
-          <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 rounded-full bg-[#FFEECF] flex items-center justify-center text-[#FF9F0A] shrink-0">
-              <AlertTriangle className="w-5 h-5 text-[#FF9F0A]" />
-            </div>
-            <div>
-              <h4 className="text-xs font-semibold text-[#1D1D1F]">
-                Data Quality Audit: {kpis.refErrorsCount} Original Excel #REF! Errors Flagged
-              </h4>
-              <p className="text-xs text-[#86868B] mt-0.5">
-                Preserved verbatim from the August 2026 worksheet. Source cells retain formulas without inventing values or zeroing data.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/raw-cells?onlyRef=true"
-            className="px-4 py-1.5 rounded-full bg-[#FFFFFF] hover:bg-[#F2F2F7] text-[#FF9F0A] border border-[#FFE4B8] text-xs font-semibold shrink-0 transition-colors shadow-2xs"
-          >
-            Review Errors
-          </Link>
-        </div>
-      )}
-
       {/* Apple-Inspired Hero Card (matches user uploaded preview media_1793937165878_c31a9c16.png!) */}
       <div className="bg-[#FFFFFF] border border-[#E5E5EA] rounded-[24px] p-6 md:p-8 shadow-apple-card space-y-6">
         {/* Top Header Inside Card */}
@@ -182,7 +156,7 @@ export default function DashboardPage() {
               </span>
             </p>
             <p className="text-xs font-semibold text-[#34C759] pt-1">
-              Monthly billing · 100% Reconciled
+              Monthly billing
             </p>
           </div>
 
@@ -274,7 +248,7 @@ export default function DashboardPage() {
           </p>
           <p className="text-[11px] text-[#34C759] font-medium flex items-center">
             <Check className="w-3 h-3 mr-1" />
-            <span>100% Reconciled</span>
+            <span>Active Billing</span>
           </p>
         </div>
 

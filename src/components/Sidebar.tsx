@@ -20,7 +20,6 @@ import {
   History,
   Trash2,
   Users,
-  LogOut,
   ChevronRight,
   ChevronLeft,
   X,
@@ -73,17 +72,6 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
   } = useSidebar();
 
   const user = propUser || contextUser;
-
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      closeMobile();
-      router.push('/login');
-      router.refresh();
-    } catch (e) {
-      console.error(e);
-    }
-  };
 
   const navGroups = [
     {
@@ -357,51 +345,6 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
             );
           })}
         </nav>
-
-        {/* User Profile Footer */}
-        <div className={`border-t border-[#E5E5EA] bg-[#FBFBFC] ${isDesktopCollapsed ? 'p-2' : 'p-3'}`}>
-          {!isDesktopCollapsed ? (
-            /* Expanded Footer */
-            <div className="flex items-center justify-between p-2 rounded-2xl bg-[#FFFFFF] border border-[#E5E5EA] shadow-2xs">
-              <div className="flex items-center space-x-2.5 truncate">
-                <div className="w-8 h-8 rounded-full bg-[#F2F2F7] border border-[#E5E5EA] flex items-center justify-center text-[#007AFF] text-xs font-semibold shrink-0">
-                  {user?.name ? user.name[0] : 'A'}
-                </div>
-                <div className="truncate">
-                  <p className="text-xs font-semibold text-[#1D1D1F] truncate">{user?.name || 'Authorized User'}</p>
-                  <p className="text-[10px] text-[#86868B] truncate font-medium">{user?.role?.replace('_', ' ') || 'Finance'}</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                title="Sign Out"
-                className="p-1.5 rounded-full text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors shrink-0"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            /* Collapsed Footer */
-            <div className="flex flex-col items-center space-y-2 py-1">
-              <div
-                className="w-9 h-9 rounded-full bg-[#F2F2F7] border border-[#E5E5EA] flex items-center justify-center text-[#007AFF] text-xs font-semibold cursor-default"
-                title={`${user?.name || 'User'} (${user?.role?.replace('_', ' ') || 'Finance'})`}
-              >
-                {user?.name ? user.name[0] : 'A'}
-              </div>
-              <button
-                type="button"
-                onClick={handleLogout}
-                title="Sign Out"
-                aria-label="Sign Out"
-                className="p-2 rounded-xl text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
       </aside>
 
       {/* =========================================================================
@@ -577,30 +520,6 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
             );
           })}
         </nav>
-
-        {/* Mobile User Profile Footer */}
-        <div className="p-3 border-t border-[#E5E5EA] bg-[#FBFBFC] shrink-0">
-          <div className="flex items-center justify-between p-2.5 rounded-2xl bg-[#FFFFFF] border border-[#E5E5EA] shadow-2xs">
-            <div className="flex items-center space-x-2.5 truncate">
-              <div className="w-8 h-8 rounded-full bg-[#F2F2F7] border border-[#E5E5EA] flex items-center justify-center text-[#007AFF] text-xs font-semibold shrink-0">
-                {user?.name ? user.name[0] : 'A'}
-              </div>
-              <div className="truncate">
-                <p className="text-xs font-semibold text-[#1D1D1F] truncate">{user?.name || 'Authorized User'}</p>
-                <p className="text-[10px] text-[#86868B] truncate font-medium">{user?.role?.replace('_', ' ') || 'Finance'}</p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              title="Sign Out"
-              aria-label="Sign Out"
-              className="p-1.5 rounded-full text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors shrink-0"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
       </aside>
     </>
   );
