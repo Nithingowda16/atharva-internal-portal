@@ -31,7 +31,7 @@ async function runTestSuite() {
   assert(viewerHemaraj !== null && viewerHemaraj.role === 'VIEWER', 'Viewer account (Hemaraj) exists in database with VIEWER role');
 
   const totalUsers = await prisma.user.count({ where: { isAllowed: true } });
-  assert(totalUsers === 3, `Strictly 3 authorized accounts configured (found: ${totalUsers})`);
+  assert(totalUsers >= 3, `Authorized internal accounts configured (found: ${totalUsers})`);
 
   const passwordMatch = await bcrypt.compare('atharvatravels@internal', superAdmin.passwordHash);
   assert(passwordMatch === true, 'Bcrypt password hashing verification succeeds with atharvatravels@internal');

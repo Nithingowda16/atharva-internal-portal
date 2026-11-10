@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSidebar } from '@/contexts/SidebarContext';
+import GlobalSearch from '@/components/GlobalSearch';
 import {
   Menu,
   RefreshCw,
@@ -100,16 +101,21 @@ export default function Navbar({ title, subtitle, onRefresh }: NavbarProps) {
           </button>
 
           {/* Page Title & Subtitle */}
-          <div className="truncate">
+          <div className="truncate hidden xl:block">
             <h2 className="text-xs sm:text-sm font-semibold text-[#1D1D1F] tracking-tight truncate">
               {title || 'Finance Portal'}
             </h2>
             {subtitle && (
-              <p className="text-[10px] sm:text-[11px] text-[#86868B] truncate hidden sm:block">
+              <p className="text-[10px] sm:text-[11px] text-[#86868B] truncate">
                 {subtitle}
               </p>
             )}
           </div>
+        </div>
+
+        {/* Center: Global Search Bar for Car Number or Driver Name */}
+        <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-2 sm:mx-4">
+          <GlobalSearch />
         </div>
 
         {/* Right side: Live Status, Refresh, User Profile & Log Out */}
