@@ -34,7 +34,14 @@ export async function GET(req: NextRequest) {
   const records = await prisma.vehicleMonthlyRecord.findMany({
     where,
     include: {
-      vehicle: true,
+      vehicle: {
+        include: {
+          assignments: {
+            where: { isCurrent: true },
+            include: { driver: true },
+          },
+        },
+      },
       period: true,
       billingLines: { where: { isDeleted: false }, orderBy: { lineOrder: 'asc' } },
       adjustments: { where: { isDeleted: false }, orderBy: { sourceRow: 'asc' } },
@@ -152,7 +159,14 @@ export async function POST(req: NextRequest) {
     const refreshed = await prisma.vehicleMonthlyRecord.findUnique({
       where: { id: record.id },
       include: {
-        vehicle: true,
+        vehicle: {
+        include: {
+          assignments: {
+            where: { isCurrent: true },
+            include: { driver: true },
+          },
+        },
+      },
         period: true,
         billingLines: { where: { isDeleted: false } },
         adjustments: { where: { isDeleted: false } },
