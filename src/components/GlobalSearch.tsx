@@ -125,12 +125,12 @@ export default function GlobalSearch() {
             if (query.length >= 2) setIsOpen(true);
           }}
           placeholder="Search car number or driver name..."
-          className="w-full pl-4 pr-16 sm:pr-20 py-2 sm:py-2.5 text-xs sm:text-[13px] rounded-full bg-[#F0F4F9] hover:bg-[#E9EEF6] border border-[#E1E5EA] text-[#1D1D1F] placeholder-[#5F6368] focus:outline-hidden focus:bg-[#FFFFFF] focus:border-[#007AFF] focus:ring-4 focus:ring-[#007AFF]/15 transition-all duration-150 shadow-2xs"
+          className="w-full pl-4 pr-10 sm:pr-12 py-2 sm:py-2.5 text-xs sm:text-[13px] rounded-full bg-[#F0F4F9] hover:bg-[#E9EEF6] border border-[#E1E5EA] text-[#1D1D1F] placeholder-[#5F6368] focus:outline-hidden focus:bg-[#FFFFFF] focus:border-[#007AFF] focus:ring-4 focus:ring-[#007AFF]/15 transition-all duration-150 shadow-2xs"
         />
 
-        {/* Right side icons: Shortcut badge & Search Magnifying Glass (Google Skills style) */}
-        <div className="absolute right-2 sm:right-3 flex items-center space-x-1.5">
-          {query ? (
+        {/* Right side action: Clear button (when typing) and Search Magnifying Glass (Google style) */}
+        <div className="absolute right-2 sm:right-3 flex items-center space-x-1">
+          {query && (
             <button
               type="button"
               onClick={handleClear}
@@ -139,10 +139,6 @@ export default function GlobalSearch() {
             >
               <X className="w-3.5 h-3.5" />
             </button>
-          ) : (
-            <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono text-[#5F6368] bg-[#FFFFFF] border border-[#E1E5EA] rounded shadow-2xs pointer-events-none">
-              ⌘K
-            </kbd>
           )}
 
           <button
@@ -151,7 +147,7 @@ export default function GlobalSearch() {
               inputRef.current?.focus();
               if (query.length >= 2) setIsOpen(true);
             }}
-            className="p-1.5 rounded-full text-[#5F6368] hover:text-[#007AFF] hover:bg-[#DDE3EA] transition-colors"
+            className="p-1.5 rounded-full text-[#5F6368] hover:text-[#007AFF] hover:bg-[#DDE3EA] transition-colors cursor-pointer"
             title="Search"
           >
             <Search className="w-4 h-4" />
