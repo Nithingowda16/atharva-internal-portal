@@ -39,6 +39,7 @@ import {
   Square
 } from 'lucide-react';
 import { exportToExcel, exportToCSV, exportSalaryReceiptPDF, SalaryReceiptData } from '@/lib/exportUtils';
+import { formatINR } from '@/lib/formatUtils';
 
 export default function PaymentsPage() {
   const { user } = useSidebar();
@@ -200,12 +201,12 @@ export default function PaymentsPage() {
     }
 
     return {
-      totalGross: gross,
-      totalTds: tds,
-      totalAdvances: advances,
-      totalNet: net,
-      totalSettled: settled,
-      totalOutstanding: outstanding,
+      totalGross: Math.round(gross * 100) / 100,
+      totalTds: Math.round(tds * 100) / 100,
+      totalAdvances: Math.round(advances * 100) / 100,
+      totalNet: Math.round(net * 100) / 100,
+      totalSettled: Math.round(settled * 100) / 100,
+      totalOutstanding: Math.round(outstanding * 100) / 100,
     };
   }, [filtered]);
 
@@ -269,7 +270,7 @@ export default function PaymentsPage() {
             category: 'TDS 1%',
             adjustmentType: 'DEDUCTION',
             amount: calculatedTds,
-            notes: `Statutory 1% TDS deducted from main monthly salary (Gross: ₹${r.grossBilling.toLocaleString('en-IN')})`,
+            notes: `Statutory 1% TDS deducted from main monthly salary (Gross: ${formatINR(r.grossBilling)})`,
           }),
         });
         const data = await res.json();
@@ -277,7 +278,7 @@ export default function PaymentsPage() {
 
         setNotification({
           type: 'success',
-          text: `1% TDS (₹${calculatedTds.toLocaleString('en-IN')}) successfully deducted from monthly salary of ${r.vehicle.registrationNumber}.`,
+          text: `1% TDS (${formatINR(calculatedTds)}) successfully deducted from monthly salary of ${r.vehicle.registrationNumber}.`,
         });
         fetchPayments();
       } catch (err: any) {
@@ -567,7 +568,7 @@ export default function PaymentsPage() {
               Gross Monthly Earnings
             </p>
             <p className="text-2xl font-bold text-[#1D1D1F] mt-1 tabular-nums">
-              ₹{totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {formatINR(totalGross)}
             </p>
             <span className="text-[10px] text-[#86868B] mt-0.5 block">
               Main billing across {filtered.length} vehicles
@@ -585,7 +586,7 @@ export default function PaymentsPage() {
               1% TDS Cut (Statutory)
             </p>
             <p className="text-2xl font-bold text-[#FF3B30] mt-1 tabular-nums">
-              ₹{totalTds.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {formatINR(totalTds)}
             </p>
             <span className="text-[10px] text-[#FF3B30] mt-0.5 block">
               1% cut from main monthly salary
@@ -603,7 +604,7 @@ export default function PaymentsPage() {
               Net Salary Payable
             </p>
             <p className="text-2xl font-bold text-[#007AFF] mt-1 tabular-nums">
-              ₹{totalNet.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {formatINR(totalNet)}
             </p>
             <span className="text-[10px] text-[#007AFF] mt-0.5 block">
               After advances & deductions
@@ -621,10 +622,10 @@ export default function PaymentsPage() {
               Settled to Date
             </p>
             <p className="text-2xl font-bold text-[#34C759] mt-1 tabular-nums">
-              ₹{totalSettled.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+              {formatINR(totalSettled)}
             </p>
             <span className="text-[10px] text-[#86868B] mt-0.5 block">
-              Outstanding: <strong className="text-[#FF9F0A]">₹{totalOutstanding.toLocaleString('en-IN')}</strong>
+              Outstanding: <strong className="text-[#FF9F0A]">{formatINR(totalOutstanding)}</strong>
             </span>
           </div>
           <div className="w-11 h-11 rounded-2xl bg-[#34C759]/10 flex items-center justify-center text-[#34C759]">
@@ -966,7 +967,7 @@ export default function PaymentsPage() {
                             className="font-bold text-[#1D1D1F] tabular-nums hover:text-[#007AFF] transition-colors cursor-pointer"
                             title="Click to drop down monthly salary deductions"
                           >
-                            ₹{r.grossBilling.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            {formatINR(r.grossBilling)}
                           </button>
                           <span className="block text-[10px] text-[#86868B]">
                             Gross Client Billing
@@ -975,7 +976,7 @@ export default function PaymentsPage() {
 
                         {/* Net Payable Monthly Salary */}
                         <td className="py-3.5 px-4 text-right font-bold text-[#007AFF] tabular-nums">
-                          ₹{r.netPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          {formatINR(r.netPayable)}
                           <span className="block text-[10px] text-[#86868B] font-normal">
                             After Deductions & TDS
                           </span>
@@ -983,7 +984,7 @@ export default function PaymentsPage() {
 
                         {/* Settled to Date */}
                         <td className="py-3.5 px-4 text-right font-semibold text-[#34C759] tabular-nums">
-                          ₹{r.amountPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          {formatINR(r.amountPaid)}
                           {r.paymentDate && (
                             <span className="block text-[10px] text-[#86868B] font-mono">
                               {r.paymentDate}
@@ -998,7 +999,7 @@ export default function PaymentsPage() {
                               outstandingBalance > 0 ? 'text-[#FF9F0A]' : 'text-[#34C759]'
                             }
                           >
-                            ₹{outstandingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            {formatINR(outstandingBalance)}
                           </span>
                         </td>
 
@@ -1141,7 +1142,7 @@ export default function PaymentsPage() {
                                     title="Click to deduct 1% TDS from monthly salary"
                                   >
                                     <Plus className="w-3 h-3" />
-                                    <span>Apply 1% TDS Cut (-₹{tdsAmount.toFixed(2)})</span>
+                                    <span>Apply 1% TDS Cut (-{formatINR(tdsAmount)})</span>
                                   </button>
                                 )}
                               </div>
@@ -1153,7 +1154,7 @@ export default function PaymentsPage() {
                                     Main Monthly Salary
                                   </span>
                                   <span className="font-bold text-[#1D1D1F] tabular-nums">
-                                    ₹{r.grossBilling.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    {formatINR(r.grossBilling)}
                                   </span>
                                 </div>
 
@@ -1163,7 +1164,7 @@ export default function PaymentsPage() {
                                     - 1% TDS Cut
                                   </span>
                                   <span className="font-bold text-[#FF3B30] tabular-nums">
-                                    - ₹{tdsAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    - {formatINR(tdsAmount)}
                                   </span>
                                 </div>
 
@@ -1173,7 +1174,7 @@ export default function PaymentsPage() {
                                     - Salary Advances
                                   </span>
                                   <span className="font-bold text-[#FF9F0A] tabular-nums">
-                                    - ₹{salaryAdvances.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    - {formatINR(salaryAdvances)}
                                   </span>
                                 </div>
 
@@ -1183,7 +1184,7 @@ export default function PaymentsPage() {
                                     - Driver Penalties
                                   </span>
                                   <span className="font-bold text-[#FF3B30] tabular-nums">
-                                    - ₹{penalties.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    - {formatINR(penalties)}
                                   </span>
                                 </div>
 
@@ -1193,7 +1194,7 @@ export default function PaymentsPage() {
                                     - Fuel & Other
                                   </span>
                                   <span className="font-bold text-[#FF3B30] tabular-nums">
-                                    - ₹{(fuelAdvances + otherDeductions).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    - {formatINR(fuelAdvances + otherDeductions)}
                                   </span>
                                 </div>
 
@@ -1203,7 +1204,7 @@ export default function PaymentsPage() {
                                     = Net Payable Salary
                                   </span>
                                   <span className="font-bold text-[#007AFF] tabular-nums">
-                                    = ₹{r.netPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    = {formatINR(r.netPayable)}
                                   </span>
                                 </div>
                               </div>
@@ -1213,14 +1214,14 @@ export default function PaymentsPage() {
                                 <div className="flex items-center space-x-2">
                                   <Info className="w-4 h-4 text-[#007AFF] shrink-0" />
                                   <p className="text-[#48484A]">
-                                    <strong>Driver Settlement Note:</strong> Gross earnings: ₹{r.grossBilling.toLocaleString('en-IN')},
-                                    minus ₹{tdsAmount.toFixed(2)} (1% TDS), minus ₹{salaryAdvances.toFixed(2)} (early salary advances),
-                                    minus ₹{penalties.toFixed(2)} (driver penalties), minus ₹{(fuelAdvances + otherDeductions).toFixed(2)} (fuel & other).
+                                    <strong>Driver Settlement Note:</strong> Gross earnings: {formatINR(r.grossBilling)},
+                                    minus {formatINR(tdsAmount)} (1% TDS), minus {formatINR(salaryAdvances)} (early salary advances),
+                                    minus {formatINR(penalties)} (driver penalties), minus {formatINR(fuelAdvances + otherDeductions)} (fuel & other).
                                   </p>
                                 </div>
                                 <div className="shrink-0 flex items-center space-x-3 text-xs">
-                                  <span>Paid: <strong className="text-[#34C759]">₹{r.amountPaid.toLocaleString('en-IN')}</strong></span>
-                                  <span>Due: <strong className="text-[#FF9F0A]">₹{outstandingBalance.toLocaleString('en-IN')}</strong></span>
+                                  <span>Paid: <strong className="text-[#34C759]">{formatINR(r.amountPaid)}</strong></span>
+                                  <span>Due: <strong className="text-[#FF9F0A]">{formatINR(outstandingBalance)}</strong></span>
                                 </div>
                               </div>
                             </div>
@@ -1235,7 +1236,7 @@ export default function PaymentsPage() {
                                     <span>Settled Payments ({r.payments?.length || 0})</span>
                                   </h5>
                                   <span className="text-xs font-bold text-[#34C759]">
-                                    ₹{r.amountPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                    {formatINR(r.amountPaid)}
                                   </span>
                                 </div>
 
@@ -1264,7 +1265,7 @@ export default function PaymentsPage() {
                                               {p.referenceNumber || p.bankName || 'NEFT'}
                                             </td>
                                             <td className="py-1.5 px-1.5 text-right font-bold text-[#34C759]">
-                                              ₹{p.amount.toLocaleString('en-IN')}
+                                              {formatINR(p.amount)}
                                             </td>
                                             {isSuperAdmin && (
                                               <td className="py-1.5 px-1.5 text-center">
@@ -1276,7 +1277,7 @@ export default function PaymentsPage() {
                                                       targetId: p.id,
                                                       parentRecordId: r.id,
                                                       title: 'Delete Payment Transaction?',
-                                                      description: `Delete payment disbursement of ₹${p.amount.toLocaleString('en-IN')} (${p.paymentDate}) for ${r.vehicle.registrationNumber}? Balance due will be restored.`,
+                                                      description: `Delete payment disbursement of ${formatINR(p.amount)} (${p.paymentDate}) for ${r.vehicle.registrationNumber}? Balance due will be restored.`,
                                                     });
                                                   }}
                                                   className="p-1 rounded text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors cursor-pointer"
@@ -1334,7 +1335,7 @@ export default function PaymentsPage() {
                                     )}
 
                                     <span className="text-xs font-bold text-[#FF3B30]">
-                                      -₹{r.totalDeductions.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                      - {formatINR(r.totalDeductions)}
                                     </span>
                                   </div>
                                 </div>
@@ -1387,7 +1388,7 @@ export default function PaymentsPage() {
                                                 {a.notes || a.formulaString || '-'}
                                               </td>
                                               <td className="py-1.5 px-1.5 text-right font-bold text-[#FF3B30]">
-                                                -₹{Math.abs(a.amount || 0).toLocaleString('en-IN')}
+                                                - {formatINR(Math.abs(a.amount || 0))}
                                               </td>
                                               {isSuperAdmin && (
                                                 <td className="py-1.5 px-1.5 text-center">
@@ -1406,7 +1407,7 @@ export default function PaymentsPage() {
                                                           type: 'deduction',
                                                           targetId: a.id,
                                                           title: `Delete Deduction: ${a.category}?`,
-                                                          description: `Delete ${a.category} (-₹${Math.abs(a.amount || 0)}) for ${r.vehicle.registrationNumber}? Net salary will be recalculated.`,
+                                                          description: `Delete ${a.category} (-${formatINR(Math.abs(a.amount || 0))}) for ${r.vehicle.registrationNumber}? Net salary will be recalculated.`,
                                                         });
                                                       }}
                                                       className="p-1 rounded text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors cursor-pointer"
@@ -1447,19 +1448,19 @@ export default function PaymentsPage() {
             <span>
               Total Gross:{' '}
               <span className="font-semibold text-[#1D1D1F] font-mono">
-                ₹{totalGross.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                {formatINR(totalGross)}
               </span>
             </span>
             <span>
               Total Disbursed:{' '}
               <span className="font-semibold text-[#34C759] font-mono">
-                ₹{totalSettled.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                {formatINR(totalSettled)}
               </span>
             </span>
             <span>
               Balance Due:{' '}
               <span className="font-semibold text-[#FF9F0A] font-mono">
-                ₹{totalOutstanding.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                {formatINR(totalOutstanding)}
               </span>
             </span>
           </div>

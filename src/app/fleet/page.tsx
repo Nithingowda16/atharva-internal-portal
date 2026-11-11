@@ -36,9 +36,14 @@ import {
   Phone,
   CreditCard,
   Building2,
-  Check
+  Check,
+  CheckSquare,
+  Square,
+  Columns3
 } from 'lucide-react';
 import { exportToExcel, exportToCSV } from '@/lib/exportUtils';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { formatINR } from '@/lib/formatUtils';
 
 interface SummaryData {
   totalVehicles: number;
@@ -54,6 +59,9 @@ interface SummaryData {
 }
 
 export default function FleetManagementPage() {
+  const { user } = useSidebar();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const [activeTab, setActiveTab] = useState<'vehicles' | 'drivers' | 'history'>('vehicles');
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState<SummaryData>({
@@ -82,6 +90,16 @@ export default function FleetManagementPage() {
   const [driverStatusFilter, setDriverStatusFilter] = useState('ALL');
   const [driverExpiryFilter, setDriverExpiryFilter] = useState('ALL');
 
+  // Dynamic Custom Columns (placed next to 1% TDS)
+  const [customColumns, setCustomColumns] = useState<Array<{ id: string; name: string; type: 'text' | 'number' | 'date' }>>([]);
+  const [customRowData, setCustomRowData] = useState<Record<string, Record<string, string>>>({});
+  const [isAddColumnModalOpen, setIsAddColumnModalOpen] = useState(false);
+  const [newColName, setNewColName] = useState('');
+  const [newColType, setNewColType] = useState<'text' | 'number' | 'date'>('text');
+
+  // Multi-select for vehicle records (bulk delete)
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<Set<string>>(new Set());
+
   // Modals & Drawers
   const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<any | null>(null);
@@ -98,7 +116,7 @@ export default function FleetManagementPage() {
   const [revealingLoading, setRevealingLoading] = useState(false);
   const [revealError, setRevealError] = useState<string | null>(null);
 
-  // Form States
+  // Form States for Vehicle Add/Edit
   const [vehicleForm, setVehicleForm] = useState({
     registrationNumber: '',
     carName: '',
@@ -111,10 +129,19 @@ export default function FleetManagementPage() {
     status: 'ACTIVE',
     ownerName: '',
     contactNumber: '',
+    bankName: '',
+    bankAccountMasked: '',
+    ifscCode: '',
     notes: '',
     remarks: '',
     initialDriverId: '',
   });
+
+  // Additional editable fields inside Vehicle Modal
+  const [driverPhoneEdit, setDriverPhoneEdit] = useState('');
+  const [totalAmtEdit, setTotalAmtEdit] = useState('');
+  const [tdsAmtEdit, setTdsAmtEdit] = useState('');
+  const [customValuesEdit, setCustomValuesEdit] = useState<Record<string, string>>({});
 
   const [driverForm, setDriverForm] = useState({
     name: '',
@@ -198,6 +225,110 @@ export default function FleetManagementPage() {
     }
   };
 
+  // Load custom columns and row data from localStorage
+  useEffect(() => {
+    try {
+      const savedCols = localStorage.getItem('atharva_fleet_custom_columns');
+      if (savedCols) {
+        setCustomColumns(JSON.parse(savedCols));
+      }
+      const savedData = localStorage.getItem('atharva_fleet_custom_row_data');
+      if (savedData) {
+        setCustomRowData(JSON.parse(savedData));
+      }
+    } catch (e) {
+      console.error('Error loading custom fleet data from storage:', e);
+    }
+  }, []);
+
+  const handleAddCustomColumn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newColName.trim()) return;
+    const colId = 'col_' + Date.now();
+    const updated = [...customColumns, { id: colId, name: newColName.trim(), type: newColType }];
+    setCustomColumns(updated);
+    try {
+      localStorage.setItem('atharva_fleet_custom_columns', JSON.stringify(updated));
+    } catch (err) {
+      console.error(err);
+    }
+    setNewColName('');
+    setNewColType('text');
+    setIsAddColumnModalOpen(false);
+  };
+
+  const handleDeleteCustomColumn = (colId: string, colName: string) => {
+    if (!confirm(`Are you sure you want to delete custom column "${colName}"?`)) return;
+    const updated = customColumns.filter((c) => c.id !== colId);
+    setCustomColumns(updated);
+    try {
+      localStorage.setItem('atharva_fleet_custom_columns', JSON.stringify(updated));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleToggleSelectVehicle = (id: string) => {
+    setSelectedVehicleIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAllVehicles = () => {
+    if (selectedVehicleIds.size === vehicles.length && vehicles.length > 0) {
+      setSelectedVehicleIds(new Set());
+    } else {
+      setSelectedVehicleIds(new Set(vehicles.map((v) => v.id)));
+    }
+  };
+
+  const handleBulkDeleteVehicles = async () => {
+    if (selectedVehicleIds.size === 0) return;
+    if (!confirm(`Are you sure you want to deactivate and soft-delete ${selectedVehicleIds.size} selected vehicles? It can be restored anytime from the Recycle Bin.`)) return;
+    try {
+      for (const id of Array.from(selectedVehicleIds)) {
+        await fetch(`/api/fleet/vehicles/${id}`, { method: 'DELETE' });
+      }
+      setSelectedVehicleIds(new Set());
+      fetchVehicles();
+      fetchSummary();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleOpenEditVehicleModal = (v: any) => {
+    setEditingVehicle(v);
+    const existingCustoms = customRowData[v.id] || {};
+    setVehicleForm({
+      registrationNumber: v.registrationNumber,
+      carName: v.carName || '',
+      make: v.make || '',
+      model: v.model || '',
+      category: v.category || 'SEDAN',
+      vehicleType: v.vehicleType || 'Vehicle - 4-Seater',
+      seatingCapacity: v.seatingCapacity || 4,
+      fuelType: v.fuelType || 'DIESEL',
+      status: v.status || 'ACTIVE',
+      ownerName: v.ownerName || '',
+      contactNumber: v.contactNumber || '',
+      bankName: v.bankName || '',
+      bankAccountMasked: v.bankAccountMasked || '',
+      ifscCode: v.ifscCode || '',
+      notes: v.notes || '',
+      remarks: v.remarks || '',
+      initialDriverId: v.currentDriver?.id || '',
+    });
+    setDriverPhoneEdit(v.currentDriver?.phone || '');
+    setTotalAmtEdit(existingCustoms['totalAmt'] || (v.financials?.totalGross ? String(v.financials.totalGross) : ''));
+    setTdsAmtEdit(existingCustoms['tdsAmt'] || (v.financials?.totalTds ? String(v.financials.totalTds) : ''));
+    setCustomValuesEdit({ ...existingCustoms });
+    setIsAddVehicleOpen(true);
+  };
+
   // Open Full Vehicle Profile
   const handleOpenVehicleProfile = async (vehicleId: string) => {
     try {
@@ -262,15 +393,40 @@ export default function FleetManagementPage() {
       const url = isEdit ? `/api/fleet/vehicles/${editingVehicle.id}` : '/api/fleet/vehicles';
       const method = isEdit ? 'PUT' : 'POST';
 
+      const payload = {
+        ...vehicleForm,
+        driverId: vehicleForm.initialDriverId,
+        driverPhone: driverPhoneEdit,
+      };
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(vehicleForm),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) {
         setFormError(data.error || 'Failed to save vehicle');
         return;
+      }
+
+      // Save custom fields & financial overrides in local storage
+      const targetVehicleId = isEdit ? editingVehicle.id : data.vehicle?.id;
+      if (targetVehicleId) {
+        const updatedRowData = {
+          ...customRowData,
+          [targetVehicleId]: {
+            ...customValuesEdit,
+            totalAmt: totalAmtEdit,
+            tdsAmt: tdsAmtEdit,
+          },
+        };
+        setCustomRowData(updatedRowData);
+        try {
+          localStorage.setItem('atharva_fleet_custom_row_data', JSON.stringify(updatedRowData));
+        } catch (err) {
+          console.error(err);
+        }
       }
 
       setIsAddVehicleOpen(false);
@@ -380,23 +536,36 @@ export default function FleetManagementPage() {
 
   // Export Fleet Vehicles
   const handleExportVehicles = () => {
-    const exportData = vehicles.map((v) => ({
-      'Registration Number': v.registrationNumber,
-      'Car Name': v.carName,
-      'Make': v.make,
-      'Model': v.model,
-      'Category': v.category,
-      'Seating Capacity': v.seatingCapacity,
-      'Fuel Type': v.fuelType,
-      'Status': v.status,
-      'Assigned Driver': v.currentDriver?.name || 'Unassigned',
-      'Driver Phone': v.currentDriver?.phone || '',
-      'Driver PAN': v.currentDriver?.panMasked || '',
-      'Driving Licence': v.currentDriver?.dlMasked || '',
-      'Total Gross Billing (₹)': v.financials?.totalGross || 0,
-      'Outstanding Balance (₹)': v.financials?.outstandingBalance || 0,
-      'Months in Service': v.financials?.monthsCount || 0,
-    }));
+    const exportData = vehicles.map((v) => {
+      const customData = customRowData[v.id] || {};
+      const totalAmtVal = customData['totalAmt'] !== undefined && customData['totalAmt'] !== ''
+        ? parseFloat(customData['totalAmt'])
+        : (v.financials?.totalGross || 0);
+      const tdsAmtVal = customData['tdsAmt'] !== undefined && customData['tdsAmt'] !== ''
+        ? parseFloat(customData['tdsAmt'])
+        : (v.financials?.totalTds || Math.round((v.financials?.totalGross || 0) * 0.01 * 100) / 100);
+
+      const row: any = {
+        'Vehicle Number': v.registrationNumber,
+        'Vehicle Category': v.category || 'SEDAN',
+        'Driver Name': v.currentDriver?.name || 'Unassigned',
+        'Driver Contact': v.currentDriver?.phone || '',
+        'Owner Name': v.ownerName || '',
+        'Contact': v.contactNumber || '',
+        'Bank Name': v.bankName || '',
+        'Ac Number': v.bankAccountMasked || '',
+        'IFSC Code': v.ifscCode || '',
+        'Total Amt (₹)': totalAmtVal,
+        '1% TDS (₹)': tdsAmtVal,
+      };
+
+      for (const col of customColumns) {
+        row[col.name] = customData[col.id] || '';
+      }
+
+      row['Status'] = v.status;
+      return row;
+    });
     exportToExcel(exportData, 'Fleet Master', 'Atharva_Fleet_Master');
   };
 
@@ -564,10 +733,17 @@ export default function FleetManagementPage() {
                     status: 'ACTIVE',
                     ownerName: '',
                     contactNumber: '',
+                    bankName: '',
+                    bankAccountMasked: '',
+                    ifscCode: '',
                     notes: '',
                     remarks: '',
                     initialDriverId: '',
                   });
+                  setDriverPhoneEdit('');
+                  setTotalAmtEdit('');
+                  setTdsAmtEdit('');
+                  setCustomValuesEdit({});
                   setEditingVehicle(null);
                   setIsAddVehicleOpen(true);
                 }}
@@ -605,20 +781,20 @@ export default function FleetManagementPage() {
       {/* TAB 1: FLEET VEHICLES VIEW */}
       {activeTab === 'vehicles' && (
         <div className="space-y-4">
-          {/* Search & Filters */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#FFFFFF] p-3 rounded-[20px] border border-[#E5E5EA] shadow-apple-card">
+          {/* Search, Category, Status & Dynamic Column Actions Toolbar */}
+          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 bg-[#FFFFFF] p-3.5 rounded-[22px] border border-[#E5E5EA] shadow-apple-card">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-[#86868B] absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search by registration number, car name, make, model, or driver..."
+                placeholder="Search by vehicle number, driver, owner, bank, or category..."
                 value={vehicleSearch}
                 onChange={(e) => setVehicleSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-[#F2F2F7] border-0 rounded-full text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                className="w-full pl-9 pr-4 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-full text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
               />
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-wrap items-center gap-2">
               <select
                 value={vehicleStatusFilter}
                 onChange={(e) => setVehicleStatusFilter(e.target.value)}
@@ -643,6 +819,31 @@ export default function FleetManagementPage() {
                 <option value="TEMPO">Tempo Traveller</option>
                 <option value="BUS">Bus</option>
               </select>
+
+              {/* Add Custom Column button in toolbar div */}
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={() => setIsAddColumnModalOpen(true)}
+                  className="px-3.5 py-1.5 bg-[#007AFF]/10 hover:bg-[#007AFF]/20 text-[#007AFF] border border-[#007AFF]/20 rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer shadow-2xs"
+                  title="Add dynamic column to fleet table next to 1% TDS"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Column</span>
+                </button>
+              )}
+
+              {/* Bulk Delete Button if any vehicles selected */}
+              {selectedVehicleIds.size > 0 && isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={handleBulkDeleteVehicles}
+                  className="px-3.5 py-1.5 bg-[#FEECEB] hover:bg-[#FCD3D1] text-[#FF3B30] border border-[#FFD0CE] rounded-full text-xs font-semibold flex items-center space-x-1.5 transition-all cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Selected ({selectedVehicleIds.size})</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -652,183 +853,308 @@ export default function FleetManagementPage() {
               <table className="w-full text-xs text-left border-collapse">
                 <thead className="bg-[#F2F2F7] text-[#1D1D1F] font-semibold border-b border-[#E5E5EA]">
                   <tr>
-                    <th className="py-3 px-4">Vehicle / Model</th>
-                    <th className="py-3 px-4">Registration No</th>
-                    <th className="py-3 px-4">Category & Capacity</th>
-                    <th className="py-3 px-4">Assigned Driver</th>
-                    <th className="py-3 px-4">Driver PAN (Masked)</th>
-                    <th className="py-3 px-4">Licence (Masked)</th>
-                    <th className="py-3 px-4">Licence Expiry</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-center">Actions</th>
+                    {isSuperAdmin && (
+                      <th className="py-3 px-3 w-8 text-center">
+                        <button
+                          type="button"
+                          onClick={handleToggleSelectAllVehicles}
+                          className="p-1 text-[#86868B] hover:text-[#007AFF] transition-colors cursor-pointer"
+                          title={selectedVehicleIds.size === vehicles.length ? 'Deselect all' : 'Select all'}
+                        >
+                          {selectedVehicleIds.size === vehicles.length && vehicles.length > 0 ? (
+                            <CheckSquare className="w-3.5 h-3.5 text-[#007AFF]" />
+                          ) : (
+                            <Square className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </th>
+                    )}
+                    <th className="py-3 px-3.5 whitespace-nowrap">Vehicle Number</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Vehicle Category</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Driver Name</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Driver Contact</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Owner Name</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Contact</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Bank Name</th>
+                    <th className="py-3 px-3 whitespace-nowrap">Ac Number</th>
+                    <th className="py-3 px-3 whitespace-nowrap">IFSC Code</th>
+                    <th className="py-3 px-3 text-right whitespace-nowrap">Total Amt</th>
+                    <th className="py-3 px-3 text-right whitespace-nowrap">1% TDS</th>
+                    {/* Dynamic Custom Columns placed right next to 1% TDS */}
+                    {customColumns.map((col) => (
+                      <th key={col.id} className="py-3 px-3 whitespace-nowrap font-semibold text-[#1D1D1F]">
+                        <div className="flex items-center space-x-1.5">
+                          <span>{col.name}</span>
+                          {isSuperAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCustomColumn(col.id, col.name)}
+                              className="p-0.5 rounded text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] transition-colors cursor-pointer"
+                              title={`Delete custom column "${col.name}"`}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                    {/* Add Column Button Option in the table header next to 1% TDS */}
+                    {isSuperAdmin && (
+                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => setIsAddColumnModalOpen(true)}
+                          className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-[#007AFF]/10 hover:bg-[#007AFF]/20 text-[#007AFF] text-[10px] font-bold transition-all border border-[#007AFF]/25 cursor-pointer shadow-2xs"
+                          title="Add dynamic column next to 1% TDS"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>+ Add Column</span>
+                        </button>
+                      </th>
+                    )}
+                    <th className="py-3 px-3 whitespace-nowrap text-center">Status</th>
+                    <th className="py-3 px-3 text-center whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E5EA]">
                   {loading && vehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-[#86868B]">
+                      <td colSpan={14 + customColumns.length} className="py-12 text-center text-[#86868B]">
                         <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-[#007AFF]" />
                         <span>Loading fleet vehicles...</span>
                       </td>
                     </tr>
                   ) : vehicles.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-[#86868B]">
+                      <td colSpan={14 + customColumns.length} className="py-12 text-center text-[#86868B]">
                         No vehicles found matching the current filter.
                       </td>
                     </tr>
                   ) : (
-                    vehicles.map((v) => (
-                      <tr key={v.id} className="hover:bg-[#F2F2F7]/50 transition-colors">
-                        {/* Vehicle / Model */}
-                        <td className="py-3 px-4">
-                          <button
-                            onClick={() => handleOpenVehicleProfile(v.id)}
-                            className="text-left group"
-                          >
-                            <p className="font-semibold text-[#1D1D1F] group-hover:text-[#007AFF] transition-colors flex items-center space-x-1">
-                              <span>{v.carName}</span>
-                              <ChevronRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </p>
-                            <p className="text-[11px] text-[#86868B]">{v.make} {v.model}</p>
-                          </button>
-                        </td>
+                    vehicles.map((v) => {
+                      const isSelected = selectedVehicleIds.has(v.id);
+                      const customData = customRowData[v.id] || {};
+                      const totalAmtVal = customData['totalAmt'] !== undefined && customData['totalAmt'] !== ''
+                        ? parseFloat(customData['totalAmt'])
+                        : (v.financials?.totalGross || 0);
+                      const tdsAmtVal = customData['tdsAmt'] !== undefined && customData['tdsAmt'] !== ''
+                        ? parseFloat(customData['tdsAmt'])
+                        : (v.financials?.totalTds || Math.round((v.financials?.totalGross || 0) * 0.01 * 100) / 100);
 
-                        {/* Registration Number */}
-                        <td className="py-3 px-4">
-                          <span className="font-mono font-semibold text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA]">
-                            {v.registrationNumber}
-                          </span>
-                        </td>
-
-                        {/* Category & Capacity */}
-                        <td className="py-3 px-4">
-                          <div className="flex items-center space-x-1.5">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EBF5FF] text-[#007AFF]">
-                              {v.category || 'SEDAN'}
-                            </span>
-                            <span className="text-[11px] text-[#86868B]">
-                              {v.seatingCapacity} Seater · {v.fuelType}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Assigned Driver */}
-                        <td className="py-3 px-4">
-                          {v.currentDriver ? (
-                            <button
-                              onClick={() => handleOpenDriverProfile(v.currentDriver.id)}
-                              className="text-left group flex items-center space-x-1.5"
-                            >
-                              <div className="w-5 h-5 rounded-full bg-[#EBF5FF] text-[#007AFF] flex items-center justify-center text-[10px] font-bold">
-                                {v.currentDriver.name.charAt(0)}
-                              </div>
-                              <span className="font-medium text-[#1D1D1F] group-hover:text-[#007AFF]">
-                                {v.currentDriver.name}
-                              </span>
-                            </button>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-[#FFF5E5] text-[#FF9F0A] border border-[#FFE4B8]">
-                              Unassigned
-                            </span>
+                      return (
+                        <tr
+                          key={v.id}
+                          className={`hover:bg-[#F2F2F7]/50 transition-colors ${
+                            isSelected ? 'bg-[#007AFF]/5' : ''
+                          }`}
+                        >
+                          {/* Checkbox for Bulk Actions */}
+                          {isSuperAdmin && (
+                            <td className="py-3 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleToggleSelectVehicle(v.id)}
+                                className="p-1 text-[#86868B] hover:text-[#007AFF] transition-colors cursor-pointer"
+                              >
+                                {isSelected ? (
+                                  <CheckSquare className="w-3.5 h-3.5 text-[#007AFF]" />
+                                ) : (
+                                  <Square className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </td>
                           )}
-                        </td>
 
-                        {/* Driver PAN (Masked) */}
-                        <td className="py-3 px-4 font-mono text-xs text-[#86868B]">
-                          {v.currentDriver?.panMasked || '—'}
-                        </td>
-
-                        {/* Driver DL (Masked) */}
-                        <td className="py-3 px-4 font-mono text-xs text-[#86868B]">
-                          {v.currentDriver?.dlMasked || '—'}
-                        </td>
-
-                        {/* Licence Expiry */}
-                        <td className="py-3 px-4">
-                          {v.currentDriver?.licenceExpiry ? (
-                            <span className="text-[11px] text-[#1D1D1F]">
-                              {new Date(v.currentDriver.licenceExpiry).toLocaleDateString('en-IN', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                              })}
-                            </span>
-                          ) : (
-                            <span className="text-[11px] text-[#86868B]">—</span>
-                          )}
-                        </td>
-
-                        {/* Status */}
-                        <td className="py-3 px-4">
-                          {getStatusBadge(v.status)}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-3 px-4 text-center">
-                          <div className="flex items-center justify-center space-x-1.5">
+                          {/* 1. Vehicle Number */}
+                          <td className="py-3 px-3.5 whitespace-nowrap">
                             <button
                               onClick={() => handleOpenVehicleProfile(v.id)}
-                              className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors"
-                              title="View Vehicle Profile & Financials"
+                              className="text-left group cursor-pointer"
+                              title="Click to view vehicle profile & financials"
                             >
-                              <Eye className="w-3.5 h-3.5" />
+                              <span className="font-mono font-bold text-xs text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA] group-hover:border-[#007AFF] group-hover:text-[#007AFF] transition-all">
+                                {v.registrationNumber}
+                              </span>
+                              {v.carName && v.carName !== v.registrationNumber && (
+                                <span className="block text-[10px] text-[#86868B] truncate max-w-[130px] mt-0.5 font-normal">
+                                  {v.carName}
+                                </span>
+                              )}
                             </button>
+                          </td>
 
-                            <button
-                              onClick={() => {
-                                setAssigningVehicle(v);
-                                setAssignForm({
-                                  vehicleId: v.id,
-                                  driverId: v.currentDriver?.id || '',
-                                  startDate: new Date().toISOString().split('T')[0],
-                                  notes: '',
-                                });
-                              }}
-                              className="p-1.5 text-[#86868B] hover:text-[#34C759] hover:bg-[#EAF9EE] rounded-full transition-colors"
-                              title="Assign / Change Driver"
-                            >
-                              <UserCheck className="w-3.5 h-3.5" />
-                            </button>
+                          {/* 2. Vehicle Category */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#EBF5FF] text-[#007AFF] border border-[#D0E2FF] uppercase">
+                              {v.category || 'SEDAN'}
+                            </span>
+                          </td>
 
-                            <button
-                              onClick={() => {
-                                setEditingVehicle(v);
-                                setVehicleForm({
-                                  registrationNumber: v.registrationNumber,
-                                  carName: v.carName || '',
-                                  make: v.make || '',
-                                  model: v.model || '',
-                                  category: v.category || 'SEDAN',
-                                  vehicleType: v.vehicleType || 'Vehicle - 4-Seater',
-                                  seatingCapacity: v.seatingCapacity || 4,
-                                  fuelType: v.fuelType || 'DIESEL',
-                                  status: v.status || 'ACTIVE',
-                                  ownerName: v.ownerName || '',
-                                  contactNumber: v.contactNumber || '',
-                                  notes: v.notes || '',
-                                  remarks: v.remarks || '',
-                                  initialDriverId: '',
-                                });
-                                setIsAddVehicleOpen(true);
-                              }}
-                              className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors"
-                              title="Edit Vehicle"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                            </button>
+                          {/* 3. Driver Name */}
+                          <td className="py-3 px-3 whitespace-nowrap">
+                            {v.currentDriver ? (
+                              <button
+                                onClick={() => handleOpenDriverProfile(v.currentDriver.id)}
+                                className="text-left group flex items-center space-x-1.5 cursor-pointer"
+                              >
+                                <div className="w-5 h-5 rounded-full bg-[#EBF5FF] text-[#007AFF] flex items-center justify-center text-[10px] font-bold">
+                                  {v.currentDriver.name.charAt(0)}
+                                </div>
+                                <span className="font-medium text-[#1D1D1F] group-hover:text-[#007AFF] transition-colors truncate max-w-[130px]">
+                                  {v.currentDriver.name}
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FFF5E5] text-[#FF9F0A] border border-[#FFE4B8]">
+                                Unassigned
+                              </span>
+                            )}
+                          </td>
 
-                            <button
-                              onClick={() => handleDeleteVehicle(v.id, v.registrationNumber)}
-                              className="p-1.5 text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] rounded-full transition-colors"
-                              title="Soft Delete to Recycle Bin"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                          {/* 4. Driver Contact */}
+                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                            {v.currentDriver?.phone ? (
+                              <span className="flex items-center space-x-1 text-[#1D1D1F]">
+                                <Phone className="w-3 h-3 text-[#86868B] shrink-0" />
+                                <span>{v.currentDriver.phone}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[#86868B]">—</span>
+                            )}
+                          </td>
+
+                          {/* 5. Owner Name */}
+                          <td className="py-3 px-3 text-[#1D1D1F] font-medium whitespace-nowrap truncate max-w-[130px]">
+                            {v.ownerName || '—'}
+                          </td>
+
+                          {/* 6. Contact (Owner Phone) */}
+                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                            {v.contactNumber ? (
+                              <span className="flex items-center space-x-1 text-[#1D1D1F]">
+                                <Phone className="w-3 h-3 text-[#86868B] shrink-0" />
+                                <span>{v.contactNumber}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[#86868B]">—</span>
+                            )}
+                          </td>
+
+                          {/* 7. Bank Name */}
+                          <td className="py-3 px-3 whitespace-nowrap text-[#1D1D1F]">
+                            {v.bankName ? (
+                              <span className="flex items-center space-x-1 truncate max-w-[130px]">
+                                <Building2 className="w-3 h-3 text-[#86868B] shrink-0" />
+                                <span className="truncate">{v.bankName}</span>
+                              </span>
+                            ) : (
+                              <span className="text-[#86868B]">—</span>
+                            )}
+                          </td>
+
+                          {/* 8. Ac Number */}
+                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                            {v.bankAccountMasked || '—'}
+                          </td>
+
+                          {/* 9. IFSC Code */}
+                          <td className="py-3 px-3 font-mono text-xs uppercase whitespace-nowrap text-[#1D1D1F]">
+                            {v.ifscCode ? (
+                              <span className="bg-[#F2F2F7] px-1.5 py-0.5 rounded border border-[#E5E5EA]">
+                                {v.ifscCode}
+                              </span>
+                            ) : (
+                              <span className="text-[#86868B]">—</span>
+                            )}
+                          </td>
+
+                          {/* 10. Total Amt */}
+                          <td className="py-3 px-3 text-right font-bold text-[#1D1D1F] tabular-nums font-mono whitespace-nowrap">
+                            {formatINR(totalAmtVal)}
+                          </td>
+
+                          {/* 11. 1% TDS */}
+                          <td className="py-3 px-3 text-right font-bold text-[#FF3B30] tabular-nums font-mono whitespace-nowrap">
+                            - {formatINR(tdsAmtVal)}
+                          </td>
+
+                          {/* 12. Dynamic Custom Columns */}
+                          {customColumns.map((col) => {
+                            const val = customData[col.id];
+                            return (
+                              <td key={col.id} className="py-3 px-3 text-xs text-[#1D1D1F] whitespace-nowrap">
+                                {val !== undefined && val !== '' ? (
+                                  col.type === 'number' ? (
+                                    <span className="font-mono tabular-nums font-semibold">{formatINR(parseFloat(val))}</span>
+                                  ) : (
+                                    <span>{val}</span>
+                                  )
+                                ) : (
+                                  <span className="text-[#86868B]">—</span>
+                                )}
+                              </td>
+                            );
+                          })}
+
+                          {/* Alignment Cell for Header Button */}
+                          {isSuperAdmin && <td className="py-3 px-2"></td>}
+
+                          {/* Status */}
+                          <td className="py-3 px-3 whitespace-nowrap text-center">
+                            {getStatusBadge(v.status)}
+                          </td>
+
+                          {/* Actions: Edit, Alter, Delete */}
+                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                            <div className="flex items-center justify-center space-x-1">
+                              <button
+                                onClick={() => handleOpenVehicleProfile(v.id)}
+                                className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors cursor-pointer"
+                                title="View Vehicle Profile & Financials"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+
+                              {isSuperAdmin && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setAssigningVehicle(v);
+                                      setAssignForm({
+                                        vehicleId: v.id,
+                                        driverId: v.currentDriver?.id || '',
+                                        startDate: new Date().toISOString().split('T')[0],
+                                        notes: '',
+                                      });
+                                    }}
+                                    className="p-1.5 text-[#86868B] hover:text-[#34C759] hover:bg-[#EAF9EE] rounded-full transition-colors cursor-pointer"
+                                    title="Assign / Alter Driver"
+                                  >
+                                    <UserCheck className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleOpenEditVehicleModal(v)}
+                                    className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors cursor-pointer"
+                                    title="Edit / Alter All Vehicle & Finance Details"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  <button
+                                    onClick={() => handleDeleteVehicle(v.id, v.registrationNumber)}
+                                    className="p-1.5 text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] rounded-full transition-colors cursor-pointer"
+                                    title="Soft Delete to Recycle Bin"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -1244,25 +1570,28 @@ export default function FleetManagementPage() {
         </div>
       )}
 
-      {/* ADD / EDIT VEHICLE MODAL */}
+      {/* ADD / EDIT VEHICLE MASTER MODAL */}
       {isAddVehicleOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto">
-          <div className="bg-[#FFFFFF] rounded-[24px] max-w-xl w-full p-6 shadow-2xl border border-[#E5E5EA] space-y-4 my-8">
-            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 overflow-y-auto animate-in fade-in duration-200">
+          <div className="bg-[#FFFFFF] rounded-[24px] max-w-2xl w-full p-6 shadow-2xl border border-[#E5E5EA] space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E5E5EA]">
               <div>
                 <h3 className="font-bold text-sm text-[#1D1D1F]">
-                  {editingVehicle ? 'Edit Vehicle Master' : 'Add New Fleet Vehicle'}
+                  {editingVehicle ? 'Edit / Alter Vehicle Master' : 'Add New Fleet Vehicle'}
                 </h3>
                 <p className="text-xs text-[#86868B]">
-                  {editingVehicle ? 'Update fleet specifications and status' : 'Register a new commercial fleet vehicle'}
+                  {editingVehicle
+                    ? 'Alter vehicle specs, driver assignment, owner, bank details, and financial figures'
+                    : 'Register a new commercial fleet vehicle and configure payee profile'}
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => {
                   setIsAddVehicleOpen(false);
                   setEditingVehicle(null);
                 }}
-                className="w-7 h-7 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#86868B] hover:text-[#1D1D1F]"
+                className="w-7 h-7 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#86868B] hover:text-[#1D1D1F] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1274,153 +1603,312 @@ export default function FleetManagementPage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveVehicle} className="space-y-3.5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">
-                    Registration Number <span className="text-[#FF3B30]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. KA04D1234"
-                    value={vehicleForm.registrationNumber}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, registrationNumber: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono uppercase text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
+            <form onSubmit={handleSaveVehicle} className="space-y-4">
+              {/* SECTION 1: VEHICLE IDENTITY & SPECS */}
+              <div className="space-y-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                  1. Vehicle Identity & Category
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      Vehicle Number (Registration) <span className="text-[#FF3B30]">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. KA03AP6188"
+                      value={vehicleForm.registrationNumber}
+                      onChange={(e) =>
+                        setVehicleForm({ ...vehicleForm, registrationNumber: e.target.value.toUpperCase() })
+                      }
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono uppercase text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Car Display Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Innova Crysta #1"
-                    value={vehicleForm.carName}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, carName: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      Vehicle Category <span className="text-[#FF3B30]">*</span>
+                    </label>
+                    <select
+                      value={vehicleForm.category}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, category: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-medium text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    >
+                      <option value="SEDAN">SEDAN (4 Seater)</option>
+                      <option value="SUV">SUV (6-7 Seater)</option>
+                      <option value="HATCHBACK">HATCHBACK (4 Seater)</option>
+                      <option value="TEMPO">TEMPO (12-17 Seater)</option>
+                      <option value="BUS">BUS (20+ Seater)</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Make / Manufacturer</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Toyota, Maruti Suzuki, Force"
-                    value={vehicleForm.make}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, make: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#86868B] mb-1">Car Display Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Innova Crysta #1"
+                      value={vehicleForm.carName}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, carName: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Model</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Innova, Dzire, Ertiga"
-                    value={vehicleForm.model}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#86868B] mb-1">Vehicle Status</label>
+                    <select
+                      value={vehicleForm.status}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, status: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                      <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                      <option value="RETIRED">Retired</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Vehicle Category</label>
-                  <select
-                    value={vehicleForm.category}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, category: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  >
-                    <option value="SEDAN">Sedan (4 Seater)</option>
-                    <option value="SUV">SUV (6-7 Seater)</option>
-                    <option value="HATCHBACK">Hatchback (4 Seater)</option>
-                    <option value="TEMPO">Tempo Traveller (12-17 Seater)</option>
-                    <option value="BUS">Bus / Coach (20+ Seater)</option>
-                  </select>
-                </div>
+                  <div>
+                    <label className="block text-xs font-medium text-[#86868B] mb-1">Make & Model</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        placeholder="Make (e.g. Toyota)"
+                        value={vehicleForm.make}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, make: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Model (e.g. Innova)"
+                        value={vehicleForm.model}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                      />
+                    </div>
+                  </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Seating Capacity</label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={60}
-                    value={vehicleForm.seatingCapacity}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, seatingCapacity: parseInt(e.target.value) || 4 })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Fuel Type</label>
-                  <select
-                    value={vehicleForm.fuelType}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, fuelType: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  >
-                    <option value="DIESEL">Diesel</option>
-                    <option value="PETROL">Petrol</option>
-                    <option value="CNG">CNG</option>
-                    <option value="ELECTRIC">Electric (EV)</option>
-                    <option value="HYBRID">Hybrid</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Vehicle Status</label>
-                  <select
-                    value={vehicleForm.status}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, status: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  >
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                    <option value="UNDER_MAINTENANCE">Under Maintenance</option>
-                    <option value="RETIRED">Retired</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Owner Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Atharva Travels / Vendor"
-                    value={vehicleForm.ownerName}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, ownerName: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Owner Contact Phone</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. +91 98765 43210"
-                    value={vehicleForm.contactNumber}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, contactNumber: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  />
+                  <div>
+                    <label className="block text-xs font-medium text-[#86868B] mb-1">Capacity & Fuel</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        max={60}
+                        placeholder="Seats"
+                        value={vehicleForm.seatingCapacity}
+                        onChange={(e) =>
+                          setVehicleForm({ ...vehicleForm, seatingCapacity: parseInt(e.target.value) || 4 })
+                        }
+                        className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                      />
+                      <select
+                        value={vehicleForm.fuelType}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, fuelType: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                      >
+                        <option value="DIESEL">Diesel</option>
+                        <option value="PETROL">Petrol</option>
+                        <option value="CNG">CNG</option>
+                        <option value="ELECTRIC">Electric (EV)</option>
+                        <option value="HYBRID">Hybrid</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {!editingVehicle && (
-                <div>
-                  <label className="block text-xs font-medium text-[#86868B] mb-1">Assign Initial Driver (Optional)</label>
-                  <select
-                    value={vehicleForm.initialDriverId}
-                    onChange={(e) => setVehicleForm({ ...vehicleForm, initialDriverId: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
-                  >
-                    <option value="">-- No Driver Assigned Initially --</option>
-                    {drivers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} {d.phone ? `(${d.phone})` : ''}
-                      </option>
+              {/* SECTION 2: DRIVER ASSIGNMENT & CONTACT */}
+              <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                  2. Driver Assignment & Driver Contact
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      Assigned Driver
+                    </label>
+                    <select
+                      value={vehicleForm.initialDriverId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        setVehicleForm({ ...vehicleForm, initialDriverId: selectedId });
+                        const found = drivers.find((d) => d.id === selectedId);
+                        if (found) setDriverPhoneEdit(found.phone || '');
+                      }}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    >
+                      <option value="">-- No Driver Assigned (Unassigned) --</option>
+                      {drivers.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name} {d.phone ? `(${d.phone})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      Driver Contact Phone
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. +91 98765 43210"
+                      value={driverPhoneEdit}
+                      onChange={(e) => setDriverPhoneEdit(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: OWNER DETAILS */}
+              <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                  3. Owner Name & Owner Contact
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">Owner Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Atharva Travels / Fleet Owner"
+                      value={vehicleForm.ownerName}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, ownerName: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">Owner Contact Phone</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. +91 98765 43210"
+                      value={vehicleForm.contactNumber}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, contactNumber: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 4: BANK ACCOUNT DETAILS */}
+              <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                  4. Bank Name, Account Number & IFSC Code
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">Bank Name</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. HDFC Bank, ICICI Bank"
+                      value={vehicleForm.bankName}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, bankName: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">Ac Number (Bank Account)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 501004123456"
+                      value={vehicleForm.bankAccountMasked}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, bankAccountMasked: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">IFSC Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. HDFC0001234"
+                      value={vehicleForm.ifscCode}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, ifscCode: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono uppercase text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 5: FINANCIAL FIGURES (TOTAL AMT & 1% TDS) */}
+              <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                    5. Total Amt & 1% TDS Figures
+                  </span>
+                  <span className="text-[10px] text-[#86868B]">Leave blank to use automatically calculated aggregates</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      Total Amt (₹ Gross Billing / Base)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="e.g. 50000.00"
+                      value={totalAmtEdit}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTotalAmtEdit(val);
+                        // Auto-calculate 1% TDS if not manually set
+                        if (val && !isNaN(parseFloat(val))) {
+                          setTdsAmtEdit((Math.round(parseFloat(val) * 0.01 * 100) / 100).toFixed(2));
+                        }
+                      }}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                      1% TDS Cut (₹ Statutory Deduction)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="e.g. 500.00"
+                      value={tdsAmtEdit}
+                      onChange={(e) => setTdsAmtEdit(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs font-mono text-[#FF3B30] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 6: DYNAMIC CUSTOM COLUMNS (IF ANY EXIST) */}
+              {customColumns.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#007AFF] block">
+                    6. Dynamic Custom Columns Next to 1% TDS
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {customColumns.map((col) => (
+                      <div key={col.id}>
+                        <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                          {col.name} ({col.type === 'number' ? '₹ Number' : col.type === 'date' ? 'Date' : 'Text'})
+                        </label>
+                        <input
+                          type={col.type === 'number' ? 'number' : col.type === 'date' ? 'date' : 'text'}
+                          step={col.type === 'number' ? '0.01' : undefined}
+                          placeholder={`Enter ${col.name}...`}
+                          value={customValuesEdit[col.id] || ''}
+                          onChange={(e) =>
+                            setCustomValuesEdit({ ...customValuesEdit, [col.id]: e.target.value })
+                          }
+                          className="w-full px-3 py-2 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF]"
+                        />
+                      </div>
                     ))}
-                  </select>
+                  </div>
                 </div>
               )}
 
-              <div>
+              {/* SECTION 7: NOTES */}
+              <div className="space-y-2 pt-2 border-t border-[#E5E5EA]">
                 <label className="block text-xs font-medium text-[#86868B] mb-1">Notes & Remarks</label>
                 <textarea
                   rows={2}
@@ -1431,23 +1919,96 @@ export default function FleetManagementPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-end space-x-2 pt-2 border-t border-[#E5E5EA]">
+              <div className="flex items-center justify-end space-x-2 pt-3 border-t border-[#E5E5EA]">
                 <button
                   type="button"
                   onClick={() => {
                     setIsAddVehicleOpen(false);
                     setEditingVehicle(null);
                   }}
-                  className="px-4 py-2 rounded-full text-xs font-medium bg-[#F2F2F7] text-[#1D1D1F] hover:bg-[#E5E5EA]"
+                  className="px-4 py-2 rounded-full text-xs font-medium bg-[#F2F2F7] text-[#1D1D1F] hover:bg-[#E5E5EA] transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[#007AFF] text-white hover:bg-[#0062CC] shadow-apple-btn disabled:opacity-50"
+                  className="px-5 py-2 rounded-full text-xs font-semibold bg-[#007AFF] text-white hover:bg-[#0062CC] shadow-apple-btn disabled:opacity-50 transition-all cursor-pointer"
                 >
                   {submitting ? 'Saving...' : editingVehicle ? 'Update Vehicle' : 'Register Vehicle'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ADD CUSTOM COLUMN MODAL (Next to 1% TDS) */}
+      {isAddColumnModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="bg-[#FFFFFF] rounded-[24px] max-w-md w-full p-6 shadow-2xl border border-[#E5E5EA] space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E5E5EA]">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#007AFF]/10 text-[#007AFF] flex items-center justify-center">
+                  <Plus className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#1D1D1F]">Add Custom Column</h3>
+                  <p className="text-[11px] text-[#86868B]">Adds a new dynamic column next to 1% TDS</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddColumnModalOpen(false)}
+                className="w-7 h-7 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#86868B] hover:text-[#1D1D1F] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCustomColumn} className="space-y-4 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                  Column Title / Header Name <span className="text-[#FF3B30]">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Challan Due, Permit Expiry, Insurance No, Fastag ID"
+                  value={newColName}
+                  onChange={(e) => setNewColName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#1D1D1F] mb-1">
+                  Data Format / Type
+                </label>
+                <select
+                  value={newColType}
+                  onChange={(e) => setNewColType(e.target.value as any)}
+                  className="w-full px-3.5 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-xl text-xs text-[#1D1D1F] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                >
+                  <option value="text">General Text / Notes</option>
+                  <option value="number">Currency / Amount (₹)</option>
+                  <option value="date">Date (YYYY-MM-DD)</option>
+                </select>
+              </div>
+
+              <div className="pt-2 flex items-center justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddColumnModalOpen(false)}
+                  className="px-4 py-2 rounded-full border border-[#E5E5EA] text-xs font-medium text-[#86868B] hover:bg-[#F2F2F7] transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold shadow-apple-btn transition-all cursor-pointer active:scale-95"
+                >
+                  Create Column
                 </button>
               </div>
             </form>
@@ -1691,6 +2252,35 @@ export default function FleetManagementPage() {
               )}
             </div>
 
+            {/* Owner & Bank Settlement Profile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="p-3.5 rounded-[18px] bg-[#F2F2F7]/60 border border-[#E5E5EA] space-y-1.5">
+                <span className="text-[10px] font-bold text-[#86868B] uppercase tracking-wider block">
+                  Fleet Owner & Contact
+                </span>
+                <p className="font-semibold text-xs text-[#1D1D1F]">
+                  {viewingVehicleProfile.ownerName || 'Atharva Travels / Primary Fleet'}
+                </p>
+                <p className="text-xs text-[#86868B] font-mono flex items-center space-x-1">
+                  <Phone className="w-3 h-3 text-[#86868B]" />
+                  <span>{viewingVehicleProfile.contactNumber || 'No phone recorded'}</span>
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-[18px] bg-[#F2F2F7]/60 border border-[#E5E5EA] space-y-1.5">
+                <span className="text-[10px] font-bold text-[#86868B] uppercase tracking-wider block">
+                  Registered Bank Account
+                </span>
+                <p className="font-semibold text-xs text-[#1D1D1F] flex items-center space-x-1">
+                  <Building2 className="w-3.5 h-3.5 text-[#007AFF]" />
+                  <span>{viewingVehicleProfile.bankName || 'Bank details not assigned'}</span>
+                </p>
+                <p className="text-xs text-[#86868B] font-mono">
+                  A/c: <strong className="text-[#1D1D1F]">{viewingVehicleProfile.bankAccountMasked || '—'}</strong> · IFSC: <strong className="text-[#1D1D1F]">{viewingVehicleProfile.ifscCode || '—'}</strong>
+                </p>
+              </div>
+            </div>
+
             {/* Linked Companies Breakdown */}
             {viewingVehicleProfile.linkedCompanies && viewingVehicleProfile.linkedCompanies.length > 0 && (
               <div className="space-y-2">
@@ -1700,7 +2290,7 @@ export default function FleetManagementPage() {
                     <div key={idx} className="bg-[#FFFFFF] border border-[#E5E5EA] p-3 rounded-[16px] space-y-1">
                       <p className="font-semibold text-xs text-[#1D1D1F] truncate">{c.companyName}</p>
                       <p className="text-sm font-bold text-[#007AFF] tabular-nums">
-                        ₹{c.totalBilling.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                        {formatINR(c.totalBilling)}
                       </p>
                       <p className="text-[10px] text-[#86868B]">{c.tripCount} trips / KMs logged</p>
                     </div>
@@ -1758,11 +2348,11 @@ export default function FleetManagementPage() {
                   <thead className="bg-[#F2F2F7] text-[#86868B]">
                     <tr>
                       <th className="py-2.5 px-3">Period</th>
-                      <th className="py-2.5 px-3">Gross Billing</th>
-                      <th className="py-2.5 px-3">Deductions</th>
-                      <th className="py-2.5 px-3">Net Payable</th>
-                      <th className="py-2.5 px-3">Paid Amount</th>
-                      <th className="py-2.5 px-3">Status</th>
+                      <th className="py-2.5 px-3 text-right">Gross Billing</th>
+                      <th className="py-2.5 px-3 text-right">Deductions</th>
+                      <th className="py-2.5 px-3 text-right">Net Payable</th>
+                      <th className="py-2.5 px-3 text-right">Paid Amount</th>
+                      <th className="py-2.5 px-3 text-center">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E5E5EA]">
@@ -1770,11 +2360,11 @@ export default function FleetManagementPage() {
                       viewingVehicleProfile.financialHistory.map((fh: any) => (
                         <tr key={fh.recordId} className="hover:bg-[#F2F2F7]/40">
                           <td className="py-2.5 px-3 font-semibold text-[#1D1D1F]">{fh.periodName}</td>
-                          <td className="py-2.5 px-3 tabular-nums font-mono">₹{fh.grossBilling.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2.5 px-3 tabular-nums font-mono text-[#FF3B30]">-₹{fh.totalDeductions.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2.5 px-3 tabular-nums font-mono font-semibold">₹{fh.netPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2.5 px-3 tabular-nums font-mono text-[#34C759]">₹{fh.amountPaid.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                          <td className="py-2.5 px-3">
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono">{formatINR(fh.grossBilling)}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono text-[#FF3B30]">- {formatINR(fh.totalDeductions)}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono font-semibold text-[#007AFF]">{formatINR(fh.netPayable)}</td>
+                          <td className="py-2.5 px-3 text-right tabular-nums font-mono text-[#34C759]">{formatINR(fh.amountPaid)}</td>
+                          <td className="py-2.5 px-3 text-center">
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-[#EBF5FF] text-[#007AFF]">
                               {fh.paymentStatus}
                             </span>

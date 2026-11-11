@@ -107,6 +107,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         contactNumber: vehicle.contactNumber || '',
         bankAccountMasked: vehicle.bankAccountMasked || '',
         bankName: vehicle.bankName || '',
+        ifscCode: vehicle.ifscCode || '',
         notes: vehicle.notes || '',
         remarks: vehicle.remarks || '',
         isDeleted: vehicle.isDeleted,
@@ -167,8 +168,13 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       status,
       ownerName,
       contactNumber,
+      bankName,
+      bankAccountMasked,
+      ifscCode,
       notes,
       remarks,
+      driverId,
+      driverPhone,
     } = body;
 
     let cleanReg = existing.registrationNumber;
@@ -210,10 +216,52 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         isActive: status ? status === 'ACTIVE' : existing.isActive,
         ownerName: ownerName !== undefined ? ownerName : existing.ownerName,
         contactNumber: contactNumber !== undefined ? contactNumber : existing.contactNumber,
+        bankName: bankName !== undefined ? bankName : existing.bankName,
+        bankAccountMasked: bankAccountMasked !== undefined ? bankAccountMasked : existing.bankAccountMasked,
+        ifscCode: ifscCode !== undefined ? ifscCode : existing.ifscCode,
         notes: notes !== undefined ? notes : existing.notes,
         remarks: remarks !== undefined ? remarks : existing.remarks,
       },
     });
+
+    // Handle driver reassignment or unassignment
+    if (driverId !== undefined) {
+      if (driverId) {
+        // Close previous assignment for this vehicle and driver
+        await prisma.vehicleDriverAssignment.updateMany({
+          where: { vehicleId: params.id, isCurrent: true },
+          data: { isCurrent: false, endDate: new Date() },
+        });
+        await prisma.vehicleDriverAssignment.updateMany({
+          where: { driverId, isCurrent: true },
+          data: { isCurrent: false, endDate: new Date() },
+        });
+        await prisma.vehicleDriverAssignment.create({
+          data: {
+            vehicleId: params.id,
+            driverId,
+            startDate: new Date(),
+            isCurrent: true,
+            assignedBy: user.email,
+            notes: 'Assigned via Vehicle Master Edit',
+          },
+        });
+
+        // Optionally update driver contact
+        if (driverPhone !== undefined) {
+          await prisma.driver.update({
+            where: { id: driverId },
+            data: { phone: driverPhone?.trim() || null },
+          });
+        }
+      } else {
+        // Unassign driver
+        await prisma.vehicleDriverAssignment.updateMany({
+          where: { vehicleId: params.id, isCurrent: true },
+          data: { isCurrent: false, endDate: new Date() },
+        });
+      }
+    }
 
     await logAudit({
       userEmail: user.email,

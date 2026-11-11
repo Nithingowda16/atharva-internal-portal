@@ -68,6 +68,10 @@ export async function GET(req: NextRequest) {
             totalDeductions: true,
             netPayable: true,
             amountPaid: true,
+            adjustments: {
+              where: { isDeleted: false },
+              select: { category: true, amount: true },
+            },
           },
         },
       },
@@ -82,12 +86,21 @@ export async function GET(req: NextRequest) {
       let totalDeductions = 0;
       let totalPaid = 0;
       let totalNet = 0;
+      let totalTds = 0;
 
       for (const mr of v.monthlyRecords) {
         totalGross += mr.grossBilling;
         totalDeductions += mr.totalDeductions;
         totalPaid += mr.amountPaid;
         totalNet += mr.netPayable;
+
+        const adjustments = (mr as any).adjustments || [];
+        const tdsAdj = adjustments.find((a: any) => (a.category || '').toLowerCase().includes('tds'));
+        if (tdsAdj) {
+          totalTds += Math.abs(tdsAdj.amount || 0);
+        } else if (mr.grossBilling > 0) {
+          totalTds += Math.round(mr.grossBilling * 0.01 * 100) / 100;
+        }
       }
 
       return {
@@ -105,6 +118,7 @@ export async function GET(req: NextRequest) {
         contactNumber: v.contactNumber || '',
         bankAccountMasked: v.bankAccountMasked || '',
         bankName: v.bankName || '',
+        ifscCode: v.ifscCode || '',
         notes: v.notes || '',
         remarks: v.remarks || '',
         currentDriver: currentDriver
@@ -121,6 +135,7 @@ export async function GET(req: NextRequest) {
           : null,
         financials: {
           totalGross: Math.round(totalGross * 100) / 100,
+          totalTds: Math.round(totalTds * 100) / 100,
           totalDeductions: Math.round(totalDeductions * 100) / 100,
           totalPaid: Math.round(totalPaid * 100) / 100,
           outstandingBalance: Math.round((totalNet - totalPaid) * 100) / 100,
@@ -160,6 +175,9 @@ export async function POST(req: NextRequest) {
       status = 'ACTIVE',
       ownerName,
       contactNumber,
+      bankName,
+      bankAccountMasked,
+      ifscCode,
       notes,
       remarks,
       initialDriverId,
@@ -201,6 +219,9 @@ export async function POST(req: NextRequest) {
         isActive: status === 'ACTIVE',
         ownerName: ownerName?.trim() || null,
         contactNumber: contactNumber?.trim() || null,
+        bankName: bankName?.trim() || null,
+        bankAccountMasked: bankAccountMasked?.trim() || null,
+        ifscCode: ifscCode?.trim() || null,
         notes: notes?.trim() || null,
         remarks: remarks?.trim() || null,
       },
