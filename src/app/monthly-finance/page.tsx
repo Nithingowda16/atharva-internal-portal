@@ -365,27 +365,15 @@ export default function MonthlyFinancePage() {
           )}
 
           {isSuperAdmin && (
-            <>
-              <button
-                type="button"
-                onClick={() => handleOpenAddAdjustment()}
-                className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#EBF5FF] hover:bg-[#D0E2FF] text-[#007AFF] text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-2xs cursor-pointer"
-                title="Record Driver Salary Advance or Penalty"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Advance / Deduction</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsCreateMonthOpen(true)}
-                className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-apple-btn active:scale-[0.98] cursor-pointer"
-                title="Create future financial month"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create New Month</span>
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={() => setIsCreateMonthOpen(true)}
+              className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-apple-btn active:scale-[0.98] cursor-pointer"
+              title="Create future financial month"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create New Month</span>
+            </button>
           )}
         </div>
       </div>
@@ -466,6 +454,19 @@ export default function MonthlyFinancePage() {
               <option value="Draft">Draft</option>
             </select>
           </div>
+
+          {/* Add Advance / Deduction Button (Next to Status) */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => handleOpenAddAdjustment()}
+              className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#EBF5FF] hover:bg-[#D0E2FF] text-[#007AFF] text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+              title="Record Driver Salary Advance or Penalty"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Advance / Deduction</span>
+            </button>
+          )}
         </div>
 
         <div className="flex items-center space-x-2 self-end md:self-auto">
