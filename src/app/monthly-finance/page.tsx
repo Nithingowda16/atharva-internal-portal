@@ -57,6 +57,7 @@ export default function MonthlyFinancePage() {
 
   // Modals state
   const [isCreateMonthOpen, setIsCreateMonthOpen] = useState(false);
+  const [isMonthActionsOpen, setIsMonthActionsOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [settlingRecord, setSettlingRecord] = useState<any | null>(null);
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
@@ -94,6 +95,7 @@ export default function MonthlyFinancePage() {
   useEffect(() => {
     if (selectedPeriodId) {
       fetchRecords(selectedPeriodId);
+      setIsMonthActionsOpen(false);
     }
   }, [selectedPeriodId, statusFilter, search]);
 
@@ -289,40 +291,77 @@ export default function MonthlyFinancePage() {
           )}
         </div>
 
-        {/* Right: Actions (Lock/Reopen Month, Delete Month, Create Month for Super Admin) */}
+        {/* Right: Actions (Month Actions Dropdown, Add Advance, Create Month for Super Admin) */}
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           {activePeriod && isSuperAdmin && (
-            <>
+            <div className="relative">
               <button
                 type="button"
-                onClick={handleToggleMonthStatus}
+                onClick={() => setIsMonthActionsOpen((prev) => !prev)}
                 className="px-4 py-2 rounded-full border border-[#E5E5EA] bg-[#FFFFFF] hover:bg-[#F2F2F7] text-[#1D1D1F] text-xs font-semibold flex items-center space-x-1.5 transition-colors shadow-2xs cursor-pointer"
+                title="Manage Month status and actions"
               >
                 {activePeriod.status === 'Locked' ? (
-                  <>
-                    <Unlock className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                    <span>Reopen Month</span>
-                  </>
+                  <Unlock className="w-3.5 h-3.5 text-[#FF9F0A]" />
                 ) : (
-                  <>
-                    <Lock className="w-3.5 h-3.5 text-[#86868B]" />
-                    <span>Lock Month</span>
-                  </>
+                  <Lock className="w-3.5 h-3.5 text-[#86868B]" />
                 )}
+                <span>Month Actions</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-[#86868B] transition-transform duration-200 ${
+                    isMonthActionsOpen ? 'rotate-180' : ''
+                  }`}
+                />
               </button>
 
-              {activePeriod.monthCode !== '2026-08' && activePeriod.monthCode !== '2026-09' && (
-                <button
-                  type="button"
-                  onClick={handleDeleteMonth}
-                  className="px-3.5 py-2 rounded-full border border-[#FF3B30]/30 bg-[#FEECEB] hover:bg-[#FCD3D1] text-[#FF3B30] text-xs font-semibold flex items-center space-x-1.5 transition-colors cursor-pointer"
-                  title="Delete this month and its draft records"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-[#FF3B30]" />
-                  <span>Delete Month</span>
-                </button>
+              {isMonthActionsOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setIsMonthActionsOpen(false)}
+                  />
+                  <div className="absolute right-0 mt-1.5 w-48 bg-[#FFFFFF] rounded-2xl shadow-apple-modal border border-[#E5E5EA] py-1.5 z-40 animate-in fade-in zoom-in-95 duration-150">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMonthActionsOpen(false);
+                        handleToggleMonthStatus();
+                      }}
+                      className="w-full px-3.5 py-2 text-left text-xs font-medium text-[#1D1D1F] hover:bg-[#F2F2F7] flex items-center space-x-2 transition-colors cursor-pointer"
+                    >
+                      {activePeriod.status === 'Locked' ? (
+                        <>
+                          <Unlock className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                          <span>Reopen Month</span>
+                        </>
+                      ) : (
+                        <>
+                          <Lock className="w-3.5 h-3.5 text-[#86868B]" />
+                          <span>Lock Month</span>
+                        </>
+                      )}
+                    </button>
+
+                    {activePeriod.monthCode !== '2026-08' && activePeriod.monthCode !== '2026-09' && (
+                      <>
+                        <div className="my-1 border-t border-[#E5E5EA]" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsMonthActionsOpen(false);
+                            handleDeleteMonth();
+                          }}
+                          className="w-full px-3.5 py-2 text-left text-xs font-semibold text-[#FF3B30] hover:bg-[#FEECEB] flex items-center space-x-2 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-[#FF3B30]" />
+                          <span>Delete Month</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
-            </>
+            </div>
           )}
 
           {isSuperAdmin && (
