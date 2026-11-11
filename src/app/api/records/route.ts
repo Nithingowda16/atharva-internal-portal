@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser, checkPermission } from '@/lib/auth';
-import { recalculateVehicleRecord } from '@/lib/calculationEngine';
+import { recalculateVehicleRecord, recalculatePeriodTotals } from '@/lib/calculationEngine';
 import { createRecordSnapshot } from '@/lib/versioning';
+import { softDeleteRecord } from '@/lib/softDelete';
 import { logAudit } from '@/lib/audit';
 
 export const dynamic = 'force-dynamic';
@@ -179,3 +180,74 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message || 'Failed to create record' }, { status: 500 });
   }
 }
+
+// DELETE /api/records – Single or bulk soft delete vehicle monthly records
+export async function DELETE(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (!checkPermission(user, 'DELETE_FINANCE')) {
+    return NextResponse.json({ error: 'Forbidden: Insufficient permissions to delete records.' }, { status: 403 });
+  }
+
+  try {
+    const { searchParams } = new URL(req.url);
+    const queryId = searchParams.get('id');
+    const queryReason = searchParams.get('reason');
+
+    let idsToDelete: string[] = [];
+    let deleteReason = queryReason || 'Super admin deletion';
+
+    if (queryId) {
+      idsToDelete = [queryId];
+    } else {
+      try {
+        const body = await req.json();
+        if (Array.isArray(body.ids)) {
+          idsToDelete = body.ids;
+        } else if (body.id) {
+          idsToDelete = [body.id];
+        }
+        if (body.reason) deleteReason = body.reason;
+      } catch (e) {}
+    }
+
+    if (idsToDelete.length === 0) {
+      return NextResponse.json({ error: 'No record ID(s) provided for deletion' }, { status: 400 });
+    }
+
+    const records = await prisma.vehicleMonthlyRecord.findMany({
+      where: { id: { in: idsToDelete }, isDeleted: false },
+      select: { id: true, periodId: true, vehicle: { select: { registrationNumber: true } } },
+    });
+
+    if (records.length === 0) {
+      return NextResponse.json({ error: 'No active records found for deletion' }, { status: 404 });
+    }
+
+    const uniquePeriodIds = Array.from(new Set(records.map((r) => r.periodId)));
+
+    for (const r of records) {
+      await softDeleteRecord({
+        entityType: 'VehicleMonthlyRecord',
+        entityId: r.id,
+        userEmail: user.email,
+        reason: deleteReason,
+      });
+    }
+
+    for (const periodId of uniquePeriodIds) {
+      await recalculatePeriodTotals(periodId);
+    }
+
+    return NextResponse.json({
+      success: true,
+      deletedCount: records.length,
+      message: `Successfully moved ${records.length} record(s) to Recycle Bin and updated period totals`,
+    });
+  } catch (err: any) {
+    console.error('Delete records error:', err);
+    return NextResponse.json({ error: err.message || 'Failed to delete records' }, { status: 500 });
+  }
+}
+

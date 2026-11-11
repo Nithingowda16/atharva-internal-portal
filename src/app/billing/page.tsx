@@ -20,7 +20,8 @@ import {
   X,
   RefreshCw,
   SlidersHorizontal,
-  ChevronDown
+  ChevronDown,
+  Plus
 } from 'lucide-react';
 import { exportToExcel, exportToCSV, exportToPDF } from '@/lib/exportUtils';
 import { useSidebar } from '@/contexts/SidebarContext';
@@ -426,8 +427,22 @@ export default function BillingPage() {
           )}
         </div>
 
-        {/* Export Toolbar */}
-        <div className="flex items-center space-x-2 self-end lg:self-auto">
+        {/* Export & Action Toolbar */}
+        <div className="flex flex-wrap items-center gap-2 self-end lg:self-auto">
+          {isSuperAdmin && (
+            <button
+              onClick={() => {
+                setEditingLine(null);
+                setIsEditModalOpen(true);
+              }}
+              className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-apple-btn active:scale-[0.98] cursor-pointer"
+              title="Add a new billing transaction row"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Add Billing Row</span>
+            </button>
+          )}
+
           <button
             onClick={() => handleExport('xlsx')}
             className="px-3.5 py-2 rounded-full border border-[#E5E5EA] bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1D1D1F] text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
@@ -642,9 +657,10 @@ export default function BillingPage() {
         </div>
       )}
 
-      {/* Edit Billing Line Modal */}
+      {/* Edit / Create Billing Line Modal */}
       <EditBillingLineModal
         isOpen={isEditModalOpen}
+        mode={editingLine ? 'edit' : 'create'}
         line={editingLine}
         periods={periods}
         companies={companies}

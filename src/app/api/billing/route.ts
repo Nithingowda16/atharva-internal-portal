@@ -86,6 +86,146 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// POST /api/billing – Create a new billing transaction row
+export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  if (!checkPermission(user, 'EDIT_FINANCE')) {
+    return NextResponse.json({ error: 'Forbidden: Super Admin authority required' }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json();
+    const {
+      periodId,
+      registrationNumber,
+      companyName,
+      kmOrTrips,
+      applicableRate,
+      billingAmount,
+      amountFormula,
+      sectionIndex,
+    } = body;
+
+    if (!periodId) return NextResponse.json({ error: 'Period is required' }, { status: 400 });
+    if (!registrationNumber || !registrationNumber.trim()) {
+      return NextResponse.json({ error: 'Vehicle registration number is required' }, { status: 400 });
+    }
+    if (!companyName || !companyName.trim()) {
+      return NextResponse.json({ error: 'Client company name is required' }, { status: 400 });
+    }
+
+    const cleanReg = registrationNumber.trim().toUpperCase();
+
+    // Find or create vehicle master
+    let vehicle = await prisma.vehicle.findFirst({
+      where: { registrationNumber: { equals: cleanReg, mode: 'insensitive' }, isDeleted: false },
+    });
+    if (!vehicle) {
+      vehicle = await prisma.vehicle.create({
+        data: {
+          registrationNumber: cleanReg,
+          vehicleType: 'Vehicle - 4-Seater',
+          status: 'ACTIVE',
+        },
+      });
+    }
+
+    // Find or create vehicle monthly record
+    let targetRecord = await prisma.vehicleMonthlyRecord.findFirst({
+      where: { periodId, vehicleId: vehicle.id, isDeleted: false },
+    });
+
+    if (!targetRecord) {
+      const secIdx = sectionIndex ? parseInt(String(sectionIndex), 10) : null;
+      let assignedSec = secIdx;
+      if (!assignedSec) {
+        const lastRec = await prisma.vehicleMonthlyRecord.findFirst({
+          where: { periodId },
+          orderBy: { sectionIndex: 'desc' },
+          select: { sectionIndex: true },
+        });
+        assignedSec = (lastRec?.sectionIndex || 0) + 1;
+      }
+
+      targetRecord = await prisma.vehicleMonthlyRecord.create({
+        data: {
+          periodId,
+          vehicleId: vehicle.id,
+          sectionIndex: assignedSec,
+          paymentStatus: 'Draft',
+        },
+      });
+    }
+
+    // Determine line order
+    const lastLine = await prisma.billingLine.findFirst({
+      where: { recordId: targetRecord.id },
+      orderBy: { lineOrder: 'desc' },
+      select: { lineOrder: true },
+    });
+    const nextLineOrder = (lastLine?.lineOrder || 0) + 1;
+
+    const km = kmOrTrips !== null && kmOrTrips !== undefined && kmOrTrips !== '' ? parseFloat(kmOrTrips) : null;
+    const rate = applicableRate !== null && applicableRate !== undefined && applicableRate !== '' ? parseFloat(applicableRate) : null;
+    let amt = parseFloat(billingAmount);
+    if (isNaN(amt)) {
+      amt = km !== null && rate !== null ? km * rate : 0;
+    }
+
+    const newLine = await prisma.billingLine.create({
+      data: {
+        recordId: targetRecord.id,
+        companyName: companyName.trim(),
+        kmOrTrips: km,
+        applicableRate: rate,
+        billingAmount: amt,
+        amountFormula: amountFormula?.trim() || (km && rate ? `${km} × ₹${rate}` : null),
+        lineOrder: nextLineOrder,
+      },
+      include: {
+        record: {
+          include: {
+            vehicle: true,
+            period: true,
+          },
+        },
+      },
+    });
+
+    // Recalculate parent vehicle record and period totals
+    await recalculateVehicleRecord(targetRecord.id);
+    await recalculatePeriodTotals(targetRecord.periodId);
+
+    // Snapshot & Audit
+    await createRecordSnapshot(targetRecord.id, `Added billing line for ${companyName.trim()}`, user.email);
+    await logAudit({
+      userEmail: user.email,
+      action: 'CREATE',
+      module: 'BILLING',
+      entityType: 'BillingLine',
+      entityId: newLine.id,
+      newState: {
+        companyName: newLine.companyName,
+        billingAmount: newLine.billingAmount,
+        vehicle: cleanReg,
+        periodId,
+      },
+      reason: `Added billing line for ${cleanReg} under ${companyName.trim()}`,
+    });
+
+    return NextResponse.json({
+      success: true,
+      line: newLine,
+      message: 'Billing transaction row created and monthly statement recalculated',
+    });
+  } catch (err: any) {
+    console.error('Error creating billing line:', err);
+    return NextResponse.json({ error: err.message || 'Failed to create billing line' }, { status: 500 });
+  }
+}
+
 // PATCH /api/billing – Edit a single billing line record
 export async function PATCH(req: NextRequest) {
   const user = await getCurrentUser();
