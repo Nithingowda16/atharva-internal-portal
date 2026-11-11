@@ -1324,27 +1324,15 @@ export default function FleetManagementPage() {
 
                           {/* 1. Vehicle Number */}
                           <td className="py-2.5 px-3 whitespace-nowrap">
-                            <div className="flex items-center space-x-1.5">
-                              <button
-                                onClick={() => handleOpenVehicleProfile(v.id)}
-                                className="text-left group cursor-pointer"
-                                title="Click to view vehicle profile & financials"
-                              >
-                                <span className="font-mono font-bold text-xs text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA] group-hover:border-[#007AFF] group-hover:text-[#007AFF] transition-all">
-                                  {v.registrationNumber}
-                                </span>
-                              </button>
-                              {isSuperAdmin && (
-                                <button
-                                  type="button"
-                                  onClick={() => handleStartInlineEdit(v)}
-                                  className="p-1 rounded text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] transition-all cursor-pointer opacity-70 hover:opacity-100"
-                                  title="Quick Edit Row In-Place"
-                                >
-                                  <Edit2 className="w-3 h-3" />
-                                </button>
-                              )}
-                            </div>
+                            <button
+                              onClick={() => handleOpenVehicleProfile(v.id)}
+                              className="text-left group cursor-pointer"
+                              title="Click to view vehicle profile & financials"
+                            >
+                              <span className="font-mono font-bold text-xs text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA] group-hover:border-[#007AFF] group-hover:text-[#007AFF] transition-all">
+                                {v.registrationNumber}
+                              </span>
+                            </button>
                             {v.carName && v.carName !== v.registrationNumber && (
                               <span className="block text-[10px] text-[#86868B] truncate max-w-[130px] mt-0.5 font-normal">
                                 {v.carName}
