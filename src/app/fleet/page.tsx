@@ -143,6 +143,41 @@ export default function FleetManagementPage() {
   const [tdsAmtEdit, setTdsAmtEdit] = useState('');
   const [customValuesEdit, setCustomValuesEdit] = useState<Record<string, string>>({});
 
+  // Inline Row Edit Mode for fleet table
+  const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
+  const [inlineForm, setInlineForm] = useState<{
+    registrationNumber: string;
+    category: string;
+    carName: string;
+    driverId: string;
+    driverPhone: string;
+    ownerName: string;
+    contactNumber: string;
+    bankName: string;
+    bankAccountMasked: string;
+    ifscCode: string;
+    totalAmt: string;
+    tdsAmt: string;
+    status: string;
+    customValues: Record<string, string>;
+  }>({
+    registrationNumber: '',
+    category: 'SEDAN',
+    carName: '',
+    driverId: '',
+    driverPhone: '',
+    ownerName: '',
+    contactNumber: '',
+    bankName: '',
+    bankAccountMasked: '',
+    ifscCode: '',
+    totalAmt: '',
+    tdsAmt: '',
+    status: 'ACTIVE',
+    customValues: {},
+  });
+  const [inlineSaving, setInlineSaving] = useState(false);
+
   const [driverForm, setDriverForm] = useState({
     name: '',
     pan: '',
@@ -327,6 +362,95 @@ export default function FleetManagementPage() {
     setTdsAmtEdit(existingCustoms['tdsAmt'] || (v.financials?.totalTds ? String(v.financials.totalTds) : ''));
     setCustomValuesEdit({ ...existingCustoms });
     setIsAddVehicleOpen(true);
+  };
+
+  // Inline Row Edit Mode Handlers
+  const handleStartInlineEdit = (v: any) => {
+    const existingCustoms = customRowData[v.id] || {};
+    const totalVal = existingCustoms['totalAmt'] !== undefined && existingCustoms['totalAmt'] !== ''
+      ? existingCustoms['totalAmt']
+      : (v.financials?.totalGross ? String(v.financials.totalGross) : '');
+    const tdsVal = existingCustoms['tdsAmt'] !== undefined && existingCustoms['tdsAmt'] !== ''
+      ? existingCustoms['tdsAmt']
+      : (v.financials?.totalTds ? String(v.financials.totalTds) : '');
+
+    setInlineForm({
+      registrationNumber: v.registrationNumber,
+      category: v.category || 'SEDAN',
+      carName: v.carName || '',
+      driverId: v.currentDriver?.id || '',
+      driverPhone: v.currentDriver?.phone || '',
+      ownerName: v.ownerName || '',
+      contactNumber: v.contactNumber || '',
+      bankName: v.bankName || '',
+      bankAccountMasked: v.bankAccountMasked || '',
+      ifscCode: v.ifscCode || '',
+      totalAmt: totalVal,
+      tdsAmt: tdsVal,
+      status: v.status || 'ACTIVE',
+      customValues: { ...existingCustoms },
+    });
+    setInlineEditingId(v.id);
+  };
+
+  const handleCancelInlineEdit = () => {
+    setInlineEditingId(null);
+  };
+
+  const handleSaveInlineEdit = async (vehicleId: string) => {
+    setInlineSaving(true);
+    try {
+      const payload = {
+        registrationNumber: inlineForm.registrationNumber,
+        category: inlineForm.category,
+        carName: inlineForm.carName || inlineForm.registrationNumber,
+        driverId: inlineForm.driverId,
+        driverPhone: inlineForm.driverPhone,
+        ownerName: inlineForm.ownerName,
+        contactNumber: inlineForm.contactNumber,
+        bankName: inlineForm.bankName,
+        bankAccountMasked: inlineForm.bankAccountMasked,
+        ifscCode: inlineForm.ifscCode,
+        status: inlineForm.status,
+      };
+
+      const res = await fetch(`/api/fleet/vehicles/${vehicleId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to update vehicle data');
+        setInlineSaving(false);
+        return;
+      }
+
+      // Save custom values + totalAmt + tdsAmt in local storage
+      const updatedRowData = {
+        ...customRowData,
+        [vehicleId]: {
+          ...inlineForm.customValues,
+          totalAmt: inlineForm.totalAmt,
+          tdsAmt: inlineForm.tdsAmt,
+        },
+      };
+      setCustomRowData(updatedRowData);
+      try {
+        localStorage.setItem('atharva_fleet_custom_row_data', JSON.stringify(updatedRowData));
+      } catch (err) {
+        console.error(err);
+      }
+
+      setInlineEditingId(null);
+      await fetchVehicles();
+      await fetchSummary();
+    } catch (err: any) {
+      alert(err.message || 'Error updating vehicle');
+    } finally {
+      setInlineSaving(false);
+    }
   };
 
   // Open Full Vehicle Profile
@@ -586,7 +710,7 @@ export default function FleetManagementPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto selection:bg-[#B3D7FF] pb-12">
+    <div className="space-y-6 w-full max-w-[1850px] mx-auto px-2 sm:px-4 lg:px-6 selection:bg-[#B3D7FF] pb-12">
       <Navbar
         title="Fleet Management"
         subtitle="Vehicle Master Database, Driver Registry, Assignments & Fleet Operations"
@@ -849,12 +973,12 @@ export default function FleetManagementPage() {
 
           {/* Table */}
           <div className="bg-[#FFFFFF] rounded-[24px] border border-[#E5E5EA] shadow-apple-card overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-collapse">
+            <div className="overflow-x-auto relative scrollbar-thin">
+              <table className="w-full text-xs text-left border-collapse min-w-[1350px]">
                 <thead className="bg-[#F2F2F7] text-[#1D1D1F] font-semibold border-b border-[#E5E5EA]">
                   <tr>
                     {isSuperAdmin && (
-                      <th className="py-3 px-3 w-8 text-center">
+                      <th className="py-2.5 px-2.5 w-8 text-center bg-[#F2F2F7]">
                         <button
                           type="button"
                           onClick={handleToggleSelectAllVehicles}
@@ -869,20 +993,20 @@ export default function FleetManagementPage() {
                         </button>
                       </th>
                     )}
-                    <th className="py-3 px-3.5 whitespace-nowrap">Vehicle Number</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Vehicle Category</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Driver Name</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Driver Contact</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Owner Name</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Contact</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Bank Name</th>
-                    <th className="py-3 px-3 whitespace-nowrap">Ac Number</th>
-                    <th className="py-3 px-3 whitespace-nowrap">IFSC Code</th>
-                    <th className="py-3 px-3 text-right whitespace-nowrap">Total Amt</th>
-                    <th className="py-3 px-3 text-right whitespace-nowrap">1% TDS</th>
+                    <th className="py-2.5 px-3 whitespace-nowrap bg-[#F2F2F7] min-w-[140px]">Vehicle Number</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[100px]">Vehicle Category</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[130px]">Driver Name</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[110px]">Driver Contact</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[110px]">Owner Name</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[110px]">Contact</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[110px]">Bank Name</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[110px]">Ac Number</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap bg-[#F2F2F7] min-w-[95px]">IFSC Code</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap bg-[#F2F2F7] min-w-[100px]">Total Amt</th>
+                    <th className="py-2.5 px-2.5 text-right whitespace-nowrap bg-[#F2F2F7] min-w-[100px]">1% TDS</th>
                     {/* Dynamic Custom Columns placed right next to 1% TDS */}
                     {customColumns.map((col) => (
-                      <th key={col.id} className="py-3 px-3 whitespace-nowrap font-semibold text-[#1D1D1F]">
+                      <th key={col.id} className="py-2.5 px-2.5 whitespace-nowrap font-semibold text-[#1D1D1F] bg-[#F2F2F7] min-w-[100px]">
                         <div className="flex items-center space-x-1.5">
                           <span>{col.name}</span>
                           {isSuperAdmin && (
@@ -900,7 +1024,7 @@ export default function FleetManagementPage() {
                     ))}
                     {/* Add Column Button Option in the table header next to 1% TDS */}
                     {isSuperAdmin && (
-                      <th className="py-3 px-2 text-center whitespace-nowrap">
+                      <th className="py-2.5 px-2 text-center whitespace-nowrap bg-[#F2F2F7] w-24">
                         <button
                           type="button"
                           onClick={() => setIsAddColumnModalOpen(true)}
@@ -912,8 +1036,11 @@ export default function FleetManagementPage() {
                         </button>
                       </th>
                     )}
-                    <th className="py-3 px-3 whitespace-nowrap text-center">Status</th>
-                    <th className="py-3 px-3 text-center whitespace-nowrap">Actions</th>
+                    <th className="py-2.5 px-2.5 whitespace-nowrap text-center bg-[#F2F2F7] min-w-[95px]">Status</th>
+                    {/* Sticky Actions column header so it is NEVER hidden */}
+                    <th className="py-2.5 px-3 text-center whitespace-nowrap sticky right-0 bg-[#F2F2F7] shadow-[-6px_0_12px_rgba(0,0,0,0.06)] border-l border-[#E5E5EA] z-20 min-w-[160px]">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E5E5EA]">
@@ -933,6 +1060,7 @@ export default function FleetManagementPage() {
                   ) : (
                     vehicles.map((v) => {
                       const isSelected = selectedVehicleIds.has(v.id);
+                      const isInline = inlineEditingId === v.id;
                       const customData = customRowData[v.id] || {};
                       const totalAmtVal = customData['totalAmt'] !== undefined && customData['totalAmt'] !== ''
                         ? parseFloat(customData['totalAmt'])
@@ -941,16 +1069,245 @@ export default function FleetManagementPage() {
                         ? parseFloat(customData['tdsAmt'])
                         : (v.financials?.totalTds || Math.round((v.financials?.totalGross || 0) * 0.01 * 100) / 100);
 
+                      if (isInline) {
+                        return (
+                          <tr
+                            key={v.id}
+                            className="bg-[#EFF6FF] border-y-2 border-[#007AFF]/30 transition-colors"
+                          >
+                            {/* Checkbox placeholder */}
+                            {isSuperAdmin && (
+                              <td className="py-2 px-2.5 text-center">
+                                <span className="w-3.5 h-3.5 inline-block rounded bg-[#007AFF]/20 text-[#007AFF] text-[9px] font-bold leading-3.5">
+                                  ✎
+                                </span>
+                              </td>
+                            )}
+
+                            {/* 1. Vehicle Number */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs font-mono font-bold uppercase bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                value={inlineForm.registrationNumber}
+                                onChange={(e) => setInlineForm({ ...inlineForm, registrationNumber: e.target.value.toUpperCase() })}
+                                placeholder="KA03AP6188"
+                              />
+                            </td>
+
+                            {/* 2. Vehicle Category */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <select
+                                className="px-1.5 py-1 text-xs font-semibold bg-white border border-[#007AFF] rounded-md text-[#007AFF] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                value={inlineForm.category}
+                                onChange={(e) => setInlineForm({ ...inlineForm, category: e.target.value })}
+                              >
+                                <option value="SEDAN">SEDAN</option>
+                                <option value="SUV">SUV</option>
+                                <option value="HATCHBACK">HATCHBACK</option>
+                                <option value="TEMPO">TEMPO</option>
+                                <option value="BUS">BUS</option>
+                              </select>
+                            </td>
+
+                            {/* 3. Driver Name */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <select
+                                className="w-32 px-1.5 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                value={inlineForm.driverId}
+                                onChange={(e) => {
+                                  const dId = e.target.value;
+                                  const matched = drivers.find((d) => d.id === dId);
+                                  setInlineForm((prev) => ({
+                                    ...prev,
+                                    driverId: dId,
+                                    driverPhone: matched?.phone || prev.driverPhone,
+                                  }));
+                                }}
+                              >
+                                <option value="">Unassigned</option>
+                                {drivers.map((d) => (
+                                  <option key={d.id} value={d.id}>
+                                    {d.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </td>
+
+                            {/* 4. Driver Contact */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs font-mono bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="+91..."
+                                value={inlineForm.driverPhone}
+                                onChange={(e) => setInlineForm({ ...inlineForm, driverPhone: e.target.value })}
+                              />
+                            </td>
+
+                            {/* 5. Owner Name */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="Owner Name"
+                                value={inlineForm.ownerName}
+                                onChange={(e) => setInlineForm({ ...inlineForm, ownerName: e.target.value })}
+                              />
+                            </td>
+
+                            {/* 6. Contact */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs font-mono bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="+91..."
+                                value={inlineForm.contactNumber}
+                                onChange={(e) => setInlineForm({ ...inlineForm, contactNumber: e.target.value })}
+                              />
+                            </td>
+
+                            {/* 7. Bank Name */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="Bank Name"
+                                value={inlineForm.bankName}
+                                onChange={(e) => setInlineForm({ ...inlineForm, bankName: e.target.value })}
+                              />
+                            </td>
+
+                            {/* 8. Ac Number */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-28 px-2 py-1 text-xs font-mono bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="Account No"
+                                value={inlineForm.bankAccountMasked}
+                                onChange={(e) => setInlineForm({ ...inlineForm, bankAccountMasked: e.target.value })}
+                              />
+                            </td>
+
+                            {/* 9. IFSC Code */}
+                            <td className="py-2 px-2.5 whitespace-nowrap">
+                              <input
+                                type="text"
+                                className="w-24 px-2 py-1 text-xs font-mono uppercase bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="IFSC"
+                                value={inlineForm.ifscCode}
+                                onChange={(e) => setInlineForm({ ...inlineForm, ifscCode: e.target.value.toUpperCase() })}
+                              />
+                            </td>
+
+                            {/* 10. Total Amt */}
+                            <td className="py-2 px-2.5 text-right whitespace-nowrap">
+                              <input
+                                type="number"
+                                step="any"
+                                className="w-24 px-2 py-1 text-xs font-mono font-bold text-right bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="0.00"
+                                value={inlineForm.totalAmt}
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  const num = parseFloat(val);
+                                  const autoTds = !isNaN(num) && num > 0 ? (Math.round(num * 0.01 * 100) / 100).toFixed(2) : '';
+                                  setInlineForm((prev) => ({ ...prev, totalAmt: val, tdsAmt: autoTds }));
+                                }}
+                              />
+                            </td>
+
+                            {/* 11. 1% TDS */}
+                            <td className="py-2 px-2.5 text-right whitespace-nowrap">
+                              <input
+                                type="number"
+                                step="any"
+                                className="w-20 px-2 py-1 text-xs font-mono font-bold text-right bg-white border border-[#007AFF] rounded-md text-[#FF3B30] focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="0.00"
+                                value={inlineForm.tdsAmt}
+                                onChange={(e) => setInlineForm((prev) => ({ ...prev, tdsAmt: e.target.value }))}
+                              />
+                            </td>
+
+                            {/* 12. Dynamic Custom Columns */}
+                            {customColumns.map((col) => (
+                              <td key={col.id} className="py-2 px-2.5 whitespace-nowrap">
+                                <input
+                                  type={col.type === 'number' ? 'number' : col.type === 'date' ? 'date' : 'text'}
+                                  className="w-24 px-2 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                  value={inlineForm.customValues[col.id] || ''}
+                                  onChange={(e) =>
+                                    setInlineForm((prev) => ({
+                                      ...prev,
+                                      customValues: { ...prev.customValues, [col.id]: e.target.value },
+                                    }))
+                                  }
+                                />
+                              </td>
+                            ))}
+
+                            {/* Alignment Cell */}
+                            {isSuperAdmin && <td className="py-2 px-2"></td>}
+
+                            {/* Status */}
+                            <td className="py-2 px-2.5 whitespace-nowrap text-center">
+                              <select
+                                className="px-1.5 py-1 text-xs font-semibold bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                value={inlineForm.status}
+                                onChange={(e) => setInlineForm((prev) => ({ ...prev, status: e.target.value }))}
+                              >
+                                <option value="ACTIVE">Active</option>
+                                <option value="INACTIVE">Inactive</option>
+                                <option value="UNDER_MAINTENANCE">Maintenance</option>
+                                <option value="RETIRED">Retired</option>
+                              </select>
+                            </td>
+
+                            {/* Sticky Actions Cell (Save / Cancel) */}
+                            <td className="py-2 px-3 text-center whitespace-nowrap sticky right-0 bg-[#EFF6FF] shadow-[-6px_0_12px_rgba(0,0,0,0.06)] border-l border-[#007AFF]/30 z-20">
+                              <div className="flex items-center justify-center space-x-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => handleSaveInlineEdit(v.id)}
+                                  disabled={inlineSaving}
+                                  className="px-3 py-1 bg-[#34C759] hover:bg-[#2EB14F] text-white text-xs font-bold rounded-lg flex items-center space-x-1 shadow-xs cursor-pointer transition-all active:scale-95"
+                                  title="Save Changes"
+                                >
+                                  {inlineSaving ? (
+                                    <RefreshCw className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Check className="w-3 h-3" />
+                                  )}
+                                  <span>Save</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelInlineEdit}
+                                  disabled={inlineSaving}
+                                  className="px-2.5 py-1 bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#86868B] text-xs font-medium rounded-lg flex items-center space-x-1 cursor-pointer transition-all"
+                                  title="Cancel Editing"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Cancel</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+
                       return (
                         <tr
                           key={v.id}
+                          onDoubleClick={() => isSuperAdmin && handleStartInlineEdit(v)}
                           className={`hover:bg-[#F2F2F7]/50 transition-colors ${
                             isSelected ? 'bg-[#007AFF]/5' : ''
                           }`}
+                          title="Double-click to inline edit all data"
                         >
                           {/* Checkbox for Bulk Actions */}
                           {isSuperAdmin && (
-                            <td className="py-3 px-3 text-center">
+                            <td className="py-2.5 px-2.5 text-center">
                               <button
                                 type="button"
                                 onClick={() => handleToggleSelectVehicle(v.id)}
@@ -966,32 +1323,44 @@ export default function FleetManagementPage() {
                           )}
 
                           {/* 1. Vehicle Number */}
-                          <td className="py-3 px-3.5 whitespace-nowrap">
-                            <button
-                              onClick={() => handleOpenVehicleProfile(v.id)}
-                              className="text-left group cursor-pointer"
-                              title="Click to view vehicle profile & financials"
-                            >
-                              <span className="font-mono font-bold text-xs text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA] group-hover:border-[#007AFF] group-hover:text-[#007AFF] transition-all">
-                                {v.registrationNumber}
-                              </span>
-                              {v.carName && v.carName !== v.registrationNumber && (
-                                <span className="block text-[10px] text-[#86868B] truncate max-w-[130px] mt-0.5 font-normal">
-                                  {v.carName}
+                          <td className="py-2.5 px-3 whitespace-nowrap">
+                            <div className="flex items-center space-x-1.5">
+                              <button
+                                onClick={() => handleOpenVehicleProfile(v.id)}
+                                className="text-left group cursor-pointer"
+                                title="Click to view vehicle profile & financials"
+                              >
+                                <span className="font-mono font-bold text-xs text-[#1D1D1F] bg-[#F2F2F7] px-2 py-0.5 rounded-md border border-[#E5E5EA] group-hover:border-[#007AFF] group-hover:text-[#007AFF] transition-all">
+                                  {v.registrationNumber}
                                 </span>
+                              </button>
+                              {isSuperAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartInlineEdit(v)}
+                                  className="p-1 rounded text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] transition-all cursor-pointer opacity-70 hover:opacity-100"
+                                  title="Quick Edit Row In-Place"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                </button>
                               )}
-                            </button>
+                            </div>
+                            {v.carName && v.carName !== v.registrationNumber && (
+                              <span className="block text-[10px] text-[#86868B] truncate max-w-[130px] mt-0.5 font-normal">
+                                {v.carName}
+                              </span>
+                            )}
                           </td>
 
                           {/* 2. Vehicle Category */}
-                          <td className="py-3 px-3 whitespace-nowrap">
+                          <td className="py-2.5 px-2.5 whitespace-nowrap">
                             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#EBF5FF] text-[#007AFF] border border-[#D0E2FF] uppercase">
                               {v.category || 'SEDAN'}
                             </span>
                           </td>
 
                           {/* 3. Driver Name */}
-                          <td className="py-3 px-3 whitespace-nowrap">
+                          <td className="py-2.5 px-2.5 whitespace-nowrap">
                             {v.currentDriver ? (
                               <button
                                 onClick={() => handleOpenDriverProfile(v.currentDriver.id)}
@@ -1012,7 +1381,7 @@ export default function FleetManagementPage() {
                           </td>
 
                           {/* 4. Driver Contact */}
-                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                          <td className="py-2.5 px-2.5 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
                             {v.currentDriver?.phone ? (
                               <span className="flex items-center space-x-1 text-[#1D1D1F]">
                                 <Phone className="w-3 h-3 text-[#86868B] shrink-0" />
@@ -1024,12 +1393,12 @@ export default function FleetManagementPage() {
                           </td>
 
                           {/* 5. Owner Name */}
-                          <td className="py-3 px-3 text-[#1D1D1F] font-medium whitespace-nowrap truncate max-w-[130px]">
+                          <td className="py-2.5 px-2.5 text-[#1D1D1F] font-medium whitespace-nowrap truncate max-w-[130px]">
                             {v.ownerName || '—'}
                           </td>
 
                           {/* 6. Contact (Owner Phone) */}
-                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                          <td className="py-2.5 px-2.5 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
                             {v.contactNumber ? (
                               <span className="flex items-center space-x-1 text-[#1D1D1F]">
                                 <Phone className="w-3 h-3 text-[#86868B] shrink-0" />
@@ -1041,7 +1410,7 @@ export default function FleetManagementPage() {
                           </td>
 
                           {/* 7. Bank Name */}
-                          <td className="py-3 px-3 whitespace-nowrap text-[#1D1D1F]">
+                          <td className="py-2.5 px-2.5 whitespace-nowrap text-[#1D1D1F]">
                             {v.bankName ? (
                               <span className="flex items-center space-x-1 truncate max-w-[130px]">
                                 <Building2 className="w-3 h-3 text-[#86868B] shrink-0" />
@@ -1053,12 +1422,12 @@ export default function FleetManagementPage() {
                           </td>
 
                           {/* 8. Ac Number */}
-                          <td className="py-3 px-3 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
+                          <td className="py-2.5 px-2.5 font-mono text-xs whitespace-nowrap text-[#1D1D1F]">
                             {v.bankAccountMasked || '—'}
                           </td>
 
                           {/* 9. IFSC Code */}
-                          <td className="py-3 px-3 font-mono text-xs uppercase whitespace-nowrap text-[#1D1D1F]">
+                          <td className="py-2.5 px-2.5 font-mono text-xs uppercase whitespace-nowrap text-[#1D1D1F]">
                             {v.ifscCode ? (
                               <span className="bg-[#F2F2F7] px-1.5 py-0.5 rounded border border-[#E5E5EA]">
                                 {v.ifscCode}
@@ -1069,12 +1438,12 @@ export default function FleetManagementPage() {
                           </td>
 
                           {/* 10. Total Amt */}
-                          <td className="py-3 px-3 text-right font-bold text-[#1D1D1F] tabular-nums font-mono whitespace-nowrap">
+                          <td className="py-2.5 px-2.5 text-right font-bold text-[#1D1D1F] tabular-nums font-mono whitespace-nowrap">
                             {formatINR(totalAmtVal)}
                           </td>
 
                           {/* 11. 1% TDS */}
-                          <td className="py-3 px-3 text-right font-bold text-[#FF3B30] tabular-nums font-mono whitespace-nowrap">
+                          <td className="py-2.5 px-2.5 text-right font-bold text-[#FF3B30] tabular-nums font-mono whitespace-nowrap">
                             - {formatINR(tdsAmtVal)}
                           </td>
 
@@ -1082,7 +1451,7 @@ export default function FleetManagementPage() {
                           {customColumns.map((col) => {
                             const val = customData[col.id];
                             return (
-                              <td key={col.id} className="py-3 px-3 text-xs text-[#1D1D1F] whitespace-nowrap">
+                              <td key={col.id} className="py-2.5 px-2.5 text-xs text-[#1D1D1F] whitespace-nowrap">
                                 {val !== undefined && val !== '' ? (
                                   col.type === 'number' ? (
                                     <span className="font-mono tabular-nums font-semibold">{formatINR(parseFloat(val))}</span>
@@ -1097,17 +1466,32 @@ export default function FleetManagementPage() {
                           })}
 
                           {/* Alignment Cell for Header Button */}
-                          {isSuperAdmin && <td className="py-3 px-2"></td>}
+                          {isSuperAdmin && <td className="py-2.5 px-2"></td>}
 
                           {/* Status */}
-                          <td className="py-3 px-3 whitespace-nowrap text-center">
+                          <td className="py-2.5 px-2.5 whitespace-nowrap text-center">
                             {getStatusBadge(v.status)}
                           </td>
 
-                          {/* Actions: Edit, Alter, Delete */}
-                          <td className="py-3 px-3 text-center whitespace-nowrap">
+                          {/* Sticky Actions: Edit, Alter, Delete */}
+                          <td className={`py-2.5 px-3 text-center whitespace-nowrap sticky right-0 shadow-[-6px_0_12px_rgba(0,0,0,0.06)] border-l border-[#E5E5EA] z-10 ${
+                            isSelected ? 'bg-[#F0F7FF]' : 'bg-[#FFFFFF]'
+                          }`}>
                             <div className="flex items-center justify-center space-x-1">
+                              {isSuperAdmin && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleStartInlineEdit(v)}
+                                  className="px-2.5 py-1 rounded-md bg-[#007AFF]/10 hover:bg-[#007AFF]/20 text-[#007AFF] text-[11px] font-bold flex items-center space-x-1 transition-all cursor-pointer shadow-2xs"
+                                  title="Edit All Vehicle & Financial Data Directly in Row"
+                                >
+                                  <Edit2 className="w-3 h-3" />
+                                  <span>Edit</span>
+                                </button>
+                              )}
+
                               <button
+                                type="button"
                                 onClick={() => handleOpenVehicleProfile(v.id)}
                                 className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors cursor-pointer"
                                 title="View Vehicle Profile & Financials"
@@ -1118,6 +1502,16 @@ export default function FleetManagementPage() {
                               {isSuperAdmin && (
                                 <>
                                   <button
+                                    type="button"
+                                    onClick={() => handleOpenEditVehicleModal(v)}
+                                    className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors cursor-pointer"
+                                    title="Full Edit Form (All Specs & Details)"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                  </button>
+
+                                  <button
+                                    type="button"
                                     onClick={() => {
                                       setAssigningVehicle(v);
                                       setAssignForm({
@@ -1134,14 +1528,7 @@ export default function FleetManagementPage() {
                                   </button>
 
                                   <button
-                                    onClick={() => handleOpenEditVehicleModal(v)}
-                                    className="p-1.5 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-full transition-colors cursor-pointer"
-                                    title="Edit / Alter All Vehicle & Finance Details"
-                                  >
-                                    <Edit2 className="w-3.5 h-3.5" />
-                                  </button>
-
-                                  <button
+                                    type="button"
                                     onClick={() => handleDeleteVehicle(v.id, v.registrationNumber)}
                                     className="p-1.5 text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FEECEB] rounded-full transition-colors cursor-pointer"
                                     title="Soft Delete to Recycle Bin"
@@ -1158,6 +1545,18 @@ export default function FleetManagementPage() {
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Table Footer info bar */}
+            <div className="px-4 py-2.5 bg-[#F9F9FB] border-t border-[#E5E5EA] flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-[#86868B]">
+              <div className="flex items-center space-x-2">
+                <span>Showing <strong>{vehicles.length}</strong> vehicles in fleet</span>
+                <span>•</span>
+                <span className="text-[#007AFF] font-medium">Click <strong>Edit</strong> or double-click any row to edit all fields in-place</span>
+              </div>
+              <div className="text-[10px] text-[#86868B] flex items-center space-x-1">
+                <span>Actions are pinned to the right edge • Scroll horizontally to view all columns</span>
+              </div>
             </div>
           </div>
         </div>
