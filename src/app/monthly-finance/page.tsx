@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import CreateMonthModal from '@/components/CreateMonthModal';
 import VehicleRecordModal from '@/components/VehicleRecordModal';
 import PaymentSettlementModal from '@/components/PaymentSettlementModal';
+import AdjustmentModal from '@/components/AdjustmentModal';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
   Calendar,
@@ -58,6 +59,13 @@ export default function MonthlyFinancePage() {
   const [isCreateMonthOpen, setIsCreateMonthOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [settlingRecord, setSettlingRecord] = useState<any | null>(null);
+  const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
+  const [targetAdjustmentRecord, setTargetAdjustmentRecord] = useState<any | null>(null);
+
+  const handleOpenAddAdjustment = (record?: any) => {
+    setTargetAdjustmentRecord(record || null);
+    setIsAdjustmentModalOpen(true);
+  };
 
   const toggleExpand = (recordId: string) => {
     setExpandedRecordIds((prev) => {
@@ -318,15 +326,27 @@ export default function MonthlyFinancePage() {
           )}
 
           {isSuperAdmin && (
-            <button
-              type="button"
-              onClick={() => setIsCreateMonthOpen(true)}
-              className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-apple-btn active:scale-[0.98] cursor-pointer"
-              title="Create future financial month"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create New Month</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => handleOpenAddAdjustment()}
+                className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#EBF5FF] hover:bg-[#D0E2FF] text-[#007AFF] text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-2xs cursor-pointer"
+                title="Record Driver Salary Advance or Penalty"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Advance / Deduction</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCreateMonthOpen(true)}
+                className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-apple-btn active:scale-[0.98] cursor-pointer"
+                title="Create future financial month"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create New Month</span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -751,11 +771,24 @@ export default function MonthlyFinancePage() {
                                     </p>
                                   </div>
                                 </div>
-                                <div className="text-right">
-                                  <span className="text-[10px] text-[#86868B] font-semibold uppercase">Net Payable</span>
-                                  <p className="text-base sm:text-lg font-bold text-[#007AFF] tabular-nums">
-                                    {formatCurrency(r.netPayable)}
-                                  </p>
+                                <div className="flex items-center space-x-3 text-right">
+                                  <div>
+                                    <span className="text-[10px] text-[#86868B] font-semibold uppercase block">Net Payable</span>
+                                    <p className="text-base sm:text-lg font-bold text-[#007AFF] tabular-nums">
+                                      {formatCurrency(r.netPayable)}
+                                    </p>
+                                  </div>
+                                  {isSuperAdmin && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleOpenAddAdjustment(r)}
+                                      className="px-3 py-1.5 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-[11px] font-semibold flex items-center space-x-1 transition-all cursor-pointer shadow-2xs shrink-0"
+                                      title="Record driver salary advance or penalty for this vehicle"
+                                    >
+                                      <Plus className="w-3.5 h-3.5" />
+                                      <span>Add Advance / Deduction</span>
+                                    </button>
+                                  )}
                                 </div>
                               </div>
 
@@ -858,9 +891,22 @@ export default function MonthlyFinancePage() {
                                       Advances Taken by Driver ({fuelAdvances.length + salaryAdvances.length})
                                     </h5>
                                   </div>
-                                  <span className="font-bold text-xs text-[#FF9F0A]">
-                                    Advances Total: {formatCurrency(fuelAdvTotal + salaryAdvTotal)}
-                                  </span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-bold text-xs text-[#FF9F0A]">
+                                      Advances Total: {formatCurrency(fuelAdvTotal + salaryAdvTotal)}
+                                    </span>
+                                    {isSuperAdmin && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenAddAdjustment(r)}
+                                        className="px-2.5 py-1 rounded-full bg-[#FF9F0A]/10 hover:bg-[#FF9F0A]/20 text-[#FF9F0A] text-[10px] font-bold flex items-center space-x-1 transition-colors cursor-pointer"
+                                        title="Record early salary advance or fuel advance"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                        <span>Add Advance</span>
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {fuelAdvances.length === 0 && salaryAdvances.length === 0 ? (
@@ -914,9 +960,22 @@ export default function MonthlyFinancePage() {
                                       Other Deductions & Adjustments ({otherDeductions.length})
                                     </h5>
                                   </div>
-                                  <span className="font-bold text-xs text-[#FF3B30]">
-                                    Other Deductions: {formatCurrency(otherDeductionsTotal)}
-                                  </span>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="font-bold text-xs text-[#FF3B30]">
+                                      Other Deductions: {formatCurrency(otherDeductionsTotal)}
+                                    </span>
+                                    {isSuperAdmin && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenAddAdjustment(r)}
+                                        className="px-2.5 py-1 rounded-full bg-[#FF3B30]/10 hover:bg-[#FF3B30]/20 text-[#FF3B30] text-[10px] font-bold flex items-center space-x-1 transition-colors cursor-pointer"
+                                        title="Record driver penalty or miscellaneous deduction"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                        <span>Add Penalty / Deduction</span>
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
 
                                 {otherDeductions.length === 0 ? (
@@ -1071,6 +1130,34 @@ export default function MonthlyFinancePage() {
           record={settlingRecord}
           onClose={() => setSettlingRecord(null)}
           onPaymentRecorded={() => {
+            if (selectedPeriodId) fetchRecords(selectedPeriodId);
+            fetchPeriods();
+          }}
+        />
+      )}
+
+      {isSuperAdmin && (
+        <AdjustmentModal
+          isOpen={isAdjustmentModalOpen}
+          mode="create"
+          preselectedRecordId={targetAdjustmentRecord?.id}
+          preselectedPeriodId={targetAdjustmentRecord?.periodId || selectedPeriodId}
+          preselectedVehicleId={targetAdjustmentRecord?.vehicleId}
+          periods={periods}
+          vehicles={records.map((rec) => ({
+            id: rec.vehicleId,
+            registrationNumber: rec.vehicle.registrationNumber,
+            vehicleType: rec.vehicle.vehicleType,
+            ownerName: rec.vehicle.ownerName,
+            assignments: rec.vehicle.assignments,
+          }))}
+          onClose={() => {
+            setIsAdjustmentModalOpen(false);
+            setTargetAdjustmentRecord(null);
+          }}
+          onSuccess={() => {
+            setIsAdjustmentModalOpen(false);
+            setTargetAdjustmentRecord(null);
             if (selectedPeriodId) fetchRecords(selectedPeriodId);
             fetchPeriods();
           }}
