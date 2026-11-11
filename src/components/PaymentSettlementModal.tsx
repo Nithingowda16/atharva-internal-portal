@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { CreditCard, Printer, CheckCircle, AlertCircle, X, Download, Check } from 'lucide-react';
-import { exportToPDF } from '@/lib/exportUtils';
+import { exportToPDF, exportSalaryReceiptPDF } from '@/lib/exportUtils';
 
 interface PaymentSettlementModalProps {
   isOpen: boolean;
@@ -65,28 +65,85 @@ export default function PaymentSettlementModal({
   };
 
   const handlePrintReceipt = () => {
-    const headers = ['Field', 'Details'];
-    const rows = [
-      ['Vehicle Registration', record.vehicle?.registrationNumber || 'N/A'],
-      ['Vehicle Category', record.vehicle?.vehicleType || 'N/A'],
-      ['Period', record.period?.periodName || 'N/A'],
-      ['Gross Billing', `₹${(record.grossBilling || 0).toFixed(2)}`],
-      ['Total Deductions', `₹${(record.totalDeductions || 0).toFixed(2)}`],
-      ['Net Payable Amount', `₹${(record.netPayable || 0).toFixed(2)}`],
-      ['Amount Settled in this Transaction', `₹${(parseFloat(amount) || 0).toFixed(2)}`],
-      ['Payment Mode', paymentMode],
-      ['Bank Name', bankName],
-      ['UTR / Reference Number', referenceNumber || 'N/A'],
-      ['Settlement Date', paymentDate],
-      ['Remarks', remarks || 'Settled and Reconciled'],
-    ];
+    const assignedDriver = record.vehicle?.assignments?.[0]?.driver || null;
+    const adjustments = record.adjustments || [];
 
-    exportToPDF({
-      title: `Payment Settlement Voucher – ${record.vehicle?.registrationNumber || 'Fleet'}`,
-      subtitle: `ATHARVA TRAVELS Internal Finance • Generated on ${new Date().toLocaleString()}`,
-      headers,
-      rows,
-      filename: `Settlement_${record.vehicle?.registrationNumber || 'Record'}_${record.period?.monthCode || 'Period'}`,
+    const tdsAdj = adjustments.find((a: any) => (a.category || '').toLowerCase().includes('tds'));
+    const tdsAmount = tdsAdj ? Math.abs(tdsAdj.amount || 0) : Math.round((record.grossBilling || 0) * 0.01 * 100) / 100;
+
+    const salaryAdvances = adjustments
+      .filter((a: any) => {
+        const cat = (a.category || '').toLowerCase();
+        return (cat.includes('salary') || cat.includes('early') || cat.includes('adv')) && !cat.includes('fuel') && !cat.includes('tds');
+      })
+      .reduce((sum: number, a: any) => sum + Math.abs(a.amount || 0), 0);
+
+    const fuelAdvances = adjustments
+      .filter((a: any) => (a.category || '').toLowerCase().includes('fuel'))
+      .reduce((sum: number, a: any) => sum + Math.abs(a.amount || 0), 0);
+
+    const driverPenalties = adjustments
+      .filter((a: any) => {
+        const cat = (a.category || '').toLowerCase();
+        return cat.includes('penalty') || cat.includes('fine');
+      })
+      .reduce((sum: number, a: any) => sum + Math.abs(a.amount || 0), 0);
+
+    const otherDeductions = adjustments
+      .filter((a: any) => {
+        const cat = (a.category || '').toLowerCase();
+        return !cat.includes('tds') && !cat.includes('salary') && !cat.includes('early') && !cat.includes('fuel') && !cat.includes('penalty') && !cat.includes('fine');
+      })
+      .reduce((sum: number, a: any) => sum + Math.abs(a.amount || 0), 0);
+
+    const settledAmt = (record.amountPaid || 0) + (parseFloat(amount) || 0);
+    const netAmt = record.netPayable || 0;
+
+    exportSalaryReceiptPDF({
+      periodName: record.period?.periodName || 'Monthly Statement',
+      monthCode: record.period?.monthCode,
+      sectionIndex: record.sectionIndex,
+      vehicle: {
+        registrationNumber: record.vehicle?.registrationNumber || 'N/A',
+        vehicleType: record.vehicle?.vehicleType,
+        ownerName: record.vehicle?.ownerName,
+      },
+      driver: assignedDriver
+        ? {
+            name: assignedDriver.name,
+            phone: assignedDriver.phone,
+            panMasked: assignedDriver.panMasked,
+            dlMasked: assignedDriver.dlMasked,
+            status: assignedDriver.status,
+          }
+        : null,
+      bankDetails: bankName || record.bankDetails,
+      grossBilling: record.grossBilling || 0,
+      tdsAmount,
+      salaryAdvances,
+      fuelAdvances,
+      driverPenalties,
+      otherDeductions,
+      totalDeductions: record.totalDeductions || 0,
+      netPayable: netAmt,
+      amountPaid: settledAmt,
+      balanceDue: Math.max(0, netAmt - settledAmt),
+      paymentStatus: settledAmt >= netAmt ? 'Paid' : 'Partially Paid',
+      paymentDate,
+      paymentMode,
+      referenceNumber,
+      bankName,
+      remarks,
+      paymentsList: [
+        ...(record.payments || []),
+        {
+          amount: parseFloat(amount) || 0,
+          paymentDate,
+          paymentMode,
+          referenceNumber,
+          bankName,
+        },
+      ],
     });
   };
 

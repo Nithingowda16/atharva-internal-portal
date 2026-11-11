@@ -509,3 +509,4 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: err.message || 'Failed to delete adjustment(s)' }, { status: 500 });
   }
 }
+
