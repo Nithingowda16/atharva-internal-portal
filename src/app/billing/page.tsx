@@ -427,22 +427,8 @@ export default function BillingPage() {
           )}
         </div>
 
-        {/* Export & Action Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 self-end lg:self-auto">
-          {isSuperAdmin && (
-            <button
-              onClick={() => {
-                setEditingLine(null);
-                setIsEditModalOpen(true);
-              }}
-              className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-apple-btn active:scale-[0.98] cursor-pointer"
-              title="Add a new billing transaction row"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Billing Row</span>
-            </button>
-          )}
-
+        {/* Export Toolbar */}
+        <div className="flex items-center space-x-2 self-end lg:self-auto">
           <button
             onClick={() => handleExport('xlsx')}
             className="px-3.5 py-2 rounded-full border border-[#E5E5EA] bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1D1D1F] text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"

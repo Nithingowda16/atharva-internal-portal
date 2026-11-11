@@ -6,7 +6,6 @@ import PaymentSettlementModal from '@/components/PaymentSettlementModal';
 import DriverAssignmentModal from '@/components/DriverAssignmentModal';
 import VehicleRecordModal from '@/components/VehicleRecordModal';
 import AdjustmentModal from '@/components/AdjustmentModal';
-import AddVehicleModal from '@/components/AddVehicleModal';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
   CreditCard,
@@ -68,9 +67,6 @@ export default function PaymentsPage() {
 
   // Edit vehicle record modal
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
-
-  // Add vehicle row modal
-  const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
 
   // Adjustment modal state (for create/edit deduction or manual TDS)
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
@@ -700,18 +696,6 @@ export default function PaymentsPage() {
 
         {/* Action Toolbar */}
         <div className="flex flex-wrap items-center gap-2 self-end lg:self-auto">
-          {/* Add Vehicle Row Button (Super Admin) */}
-          {isSuperAdmin && (
-            <button
-              onClick={() => setIsAddVehicleOpen(true)}
-              className="px-4 py-2 rounded-full bg-[#007AFF] hover:bg-[#0062CC] text-white text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-apple-btn active:scale-[0.98] cursor-pointer"
-              title="Add a new vehicle row in payments directory"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add Vehicle Row</span>
-            </button>
-          )}
-
           <button
             onClick={() => handleExportInternalRecord('xlsx')}
             className="px-3.5 py-2 rounded-full border border-[#E5E5EA] bg-[#F2F2F7] hover:bg-[#E5E5EA] text-[#1D1D1F] text-xs font-medium flex items-center space-x-1.5 transition-colors cursor-pointer"
@@ -1516,24 +1500,6 @@ export default function PaymentsPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Add Vehicle Row Modal */}
-      {isAddVehicleOpen && (
-        <AddVehicleModal
-          isOpen={isAddVehicleOpen}
-          periodId={selectedPeriodId !== 'ALL' ? selectedPeriodId : undefined}
-          periods={periods}
-          onClose={() => setIsAddVehicleOpen(false)}
-          onVehicleAdded={() => {
-            setIsAddVehicleOpen(false);
-            fetchPayments();
-            setNotification({
-              type: 'success',
-              text: 'New vehicle row added to payments directory.',
-            });
-          }}
-        />
       )}
 
       {/* Record Payment Settlement Modal */}

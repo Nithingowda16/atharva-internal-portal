@@ -6,7 +6,6 @@ import CreateMonthModal from '@/components/CreateMonthModal';
 import VehicleRecordModal from '@/components/VehicleRecordModal';
 import PaymentSettlementModal from '@/components/PaymentSettlementModal';
 import AdjustmentModal from '@/components/AdjustmentModal';
-import AddVehicleModal from '@/components/AddVehicleModal';
 import { useSidebar } from '@/contexts/SidebarContext';
 import {
   Calendar,
@@ -58,7 +57,6 @@ export default function MonthlyFinancePage() {
 
   // Modals state
   const [isCreateMonthOpen, setIsCreateMonthOpen] = useState(false);
-  const [isAddVehicleOpen, setIsAddVehicleOpen] = useState(false);
   const [editingRecordId, setEditingRecordId] = useState<string | null>(null);
   const [settlingRecord, setSettlingRecord] = useState<any | null>(null);
   const [isAdjustmentModalOpen, setIsAdjustmentModalOpen] = useState(false);
@@ -329,16 +327,6 @@ export default function MonthlyFinancePage() {
 
           {isSuperAdmin && (
             <>
-              <button
-                type="button"
-                onClick={() => setIsAddVehicleOpen(true)}
-                className="px-4 py-2 rounded-full border border-[#007AFF]/30 bg-[#FFFFFF] hover:bg-[#F2F2F7] text-[#007AFF] text-xs font-semibold transition-all duration-150 flex items-center space-x-1.5 shadow-2xs cursor-pointer"
-                title="Add a new vehicle row to this month"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Add Vehicle Row</span>
-              </button>
-
               <button
                 type="button"
                 onClick={() => handleOpenAddAdjustment()}
@@ -1119,21 +1107,6 @@ export default function MonthlyFinancePage() {
           onClose={() => setIsCreateMonthOpen(false)}
           existingPeriods={periods}
           onMonthCreated={() => {
-            fetchPeriods();
-          }}
-        />
-      )}
-
-      {isAddVehicleOpen && (
-        <AddVehicleModal
-          isOpen={isAddVehicleOpen}
-          periodId={selectedPeriodId}
-          periodName={activePeriod?.periodName}
-          periods={periods}
-          onClose={() => setIsAddVehicleOpen(false)}
-          onVehicleAdded={() => {
-            setIsAddVehicleOpen(false);
-            if (selectedPeriodId) fetchRecords(selectedPeriodId);
             fetchPeriods();
           }}
         />
