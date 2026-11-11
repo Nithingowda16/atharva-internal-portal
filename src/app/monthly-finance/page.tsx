@@ -284,9 +284,6 @@ export default function MonthlyFinancePage() {
                 />
                 <span>{activePeriod.status}</span>
               </span>
-              <span className="text-[11px] text-[#86868B] font-mono">
-                FY {activePeriod.financialYear}
-              </span>
             </div>
           )}
         </div>
