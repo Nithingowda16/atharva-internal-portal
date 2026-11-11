@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import { SidebarProvider, useSidebar } from '@/contexts/SidebarContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 function LayoutInner({ children }: { children: React.ReactNode }) {
   const { isDesktopCollapsed } = useSidebar();
@@ -40,12 +41,18 @@ export default function LayoutShell({
   const isLoginPage = pathname === '/login';
 
   if (isLoginPage) {
-    return <main className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F]">{children}</main>;
+    return (
+      <ThemeProvider>
+        <main className="min-h-screen bg-[#F5F5F7] text-[#1D1D1F]">{children}</main>
+      </ThemeProvider>
+    );
   }
 
   return (
-    <SidebarProvider user={user}>
-      <LayoutInner>{children}</LayoutInner>
-    </SidebarProvider>
+    <ThemeProvider>
+      <SidebarProvider user={user}>
+        <LayoutInner>{children}</LayoutInner>
+      </SidebarProvider>
+    </ThemeProvider>
   );
 }

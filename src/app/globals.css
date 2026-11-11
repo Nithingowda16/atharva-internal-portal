@@ -47,3 +47,82 @@ html, body {
   background-color: #B3D7FF;
   color: #1D1D1F;
 }
+
+/* ==========================================================================
+   Apple Dark Mode Styles & System Palette Mapping
+   ========================================================================== */
+html.dark {
+  color-scheme: dark;
+  --apple-bg: #0A0A0C;
+  --apple-card: #1C1C1E;
+  --apple-text: #F5F5F7;
+  --apple-secondary: #98989D;
+  --apple-border: #2C2C2E;
+  --apple-subtle: #1C1C1E;
+  --apple-blue: #0A84FF;
+}
+
+html.dark, html.dark body {
+  background-color: #0A0A0C !important;
+  color: #F5F5F7 !important;
+}
+
+html.dark .bg-\[\#F5F5F7\] {
+  background-color: #0A0A0C !important;
+}
+
+html.dark .bg-\[\#FFFFFF\] {
+  background-color: #1C1C1E !important;
+}
+
+html.dark .bg-\[\#F2F2F7\] {
+  background-color: #2C2C2E !important;
+}
+
+html.dark .bg-\[\#FBFBFC\] {
+  background-color: #141416 !important;
+}
+
+html.dark .bg-\[\#F8F9FA\],
+html.dark .bg-\[\#F8F9FB\] {
+  background-color: #242426 !important;
+}
+
+html.dark .text-\[\#1D1D1F\] {
+  color: #F5F5F7 !important;
+}
+
+html.dark .text-\[\#86868B\] {
+  color: #98989D !important;
+}
+
+html.dark .text-\[\#48484A\] {
+  color: #D1D1D6 !important;
+}
+
+html.dark .border-\[\#E5E5EA\] {
+  border-color: #2C2C2E !important;
+}
+
+html.dark select option {
+  background-color: #1C1C1E;
+  color: #F5F5F7;
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color: #F5F5F7;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #3A3A3C;
+}
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #48484A;
+}
+
+html.dark ::selection {
+  background-color: #004B99;
+  color: #FFFFFF;
+}
