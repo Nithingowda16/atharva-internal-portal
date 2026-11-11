@@ -281,18 +281,6 @@ export default function Navbar({ title, subtitle, onRefresh }: NavbarProps) {
               </>
             )}
           </div>
-
-          {/* Quick Logout Button (in the same row, kept as requested) */}
-          <button
-            type="button"
-            onClick={() => setShowLogoutConfirm(true)}
-            aria-label="Sign Out"
-            title="Sign Out"
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[#FFFFFF] hover:bg-[#FEECEB] border border-[#E5E5EA] hover:border-[#FCD3D1] text-[#86868B] hover:text-[#FF3B30] text-xs font-semibold transition-all active:scale-95 shadow-2xs shrink-0 cursor-pointer"
-          >
-            <LogOut className="w-3.5 h-3.5 text-[#FF3B30] shrink-0" />
-            <span className="hidden sm:inline">Log Out</span>
-          </button>
         </div>
       </header>
 
