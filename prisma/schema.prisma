@@ -358,3 +358,45 @@ model BankAccountEntry {
   @@index([section])
   @@index([isDeleted])
 }
+
+
+model TdsRecord {
+  id                 String       @id @default(cuid())
+  financialYear      String       // "2025-26", "2026-27", etc.
+  financialMonth     String       // "Aug-26", "Sep-26", "Nov-26", etc.
+  companyName        String       // "ECO Travels", "ORIX", "ANP-HCL", etc.
+  tdsCategory        String       // "194C - Cab Transport", "194J", etc.
+  amount             Float
+  transactionDate    String       // "YYYY-MM-DD"
+  tdsReferenceNo     String?      // Challan No / 26AS reference
+  invoiceReference   String?      // Invoice number or trip reference
+  accountingType     String       @default("RECEIVABLE") // "RECEIVABLE", "PAID_GOVERNMENT", "WITHHELD", "ADJUSTMENT"
+  status             String       @default("CONFIRMED")  // "CONFIRMED", "PENDING", "RECONCILED"
+  remarks            String?
+  isDeleted          Boolean      @default(false)
+  deletedAt          DateTime?
+  createdById        String?
+  createdByEmail     String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  versions           TdsVersion[]
+
+  @@index([financialYear, financialMonth])
+  @@index([companyName])
+  @@index([accountingType])
+  @@index([isDeleted])
+}
+
+model TdsVersion {
+  id             String    @id @default(cuid())
+  tdsRecordId    String
+  tdsRecord      TdsRecord @relation(fields: [tdsRecordId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  snapshotData   String    // JSON snapshot for instant version revert
+  changeReason   String?
+  createdById    String?
+  createdByEmail String?
+  createdAt      DateTime  @default(now())
+
+  @@index([tdsRecordId, versionNumber])
+}

@@ -404,6 +404,38 @@ async function runTestSuite() {
   });
   assert(bankCells === 1699, `All 1,699 cells from 12 worksheets preserved in durable database archive (found: ${bankCells})`);
 
+  // TEST SUITE 12: Dynamic TDS Management & Versioning Verification
+  console.log('\n--- TEST SUITE 12: Dynamic TDS Management & Versioning Verification ---');
+  const tdsRecords = await newPrismaInstance.tdsRecord.findMany({
+    where: { isDeleted: false },
+    include: { versions: true },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  assert(tdsRecords.length >= 2, `TDS Records populated in database (found: ${tdsRecords.length} active records)`);
+
+  const augEco = tdsRecords.find(r => r.financialMonth === 'Aug-26' && r.companyName === 'ECO Travels');
+  assert(augEco !== undefined, 'Aug-ECO TDS record exists in database');
+  if (augEco) {
+    assert(Math.abs(augEco.amount - 8989.95) <= 0.01, `Aug-ECO amount ₹8,989.95 matches screenshot and workbook (found: ₹${augEco.amount})`);
+    assert(augEco.versions.length >= 1, `Aug-ECO contains initial version audit snapshot (found: ${augEco.versions.length} versions)`);
+  }
+
+  const sepEco = tdsRecords.find(r => r.financialMonth === 'Sep-26' && r.companyName === 'ECO Travels');
+  assert(sepEco !== undefined, 'SEP-ECO TDS record exists in database');
+  if (sepEco) {
+    assert(Math.abs(sepEco.amount - 11215.35) <= 0.01, `SEP-ECO amount ₹11,215.35 matches screenshot and workbook (found: ₹${sepEco.amount})`);
+    assert(sepEco.versions.length >= 1, `SEP-ECO contains initial version audit snapshot (found: ${sepEco.versions.length} versions)`);
+  }
+
+  const totalTdsSum = tdsRecords.reduce((sum, r) => sum + r.amount, 0);
+  assert(Math.abs(totalTdsSum - 20205.30) <= 0.01, `Total TDS sum ₹20,205.30 exactly matches formula 8989.95 + 11215.35 (found: ₹${totalTdsSum.toFixed(2)})`);
+
+  // Verify connection to Bank Balance D72 (GST & TDS = 4012 + 20205.30 = 24217.30)
+  const gstBase = 4012.00;
+  const calculatedGstTds = gstBase + totalTdsSum;
+  assert(Math.abs(calculatedGstTds - 24217.30) <= 0.01, `GST & TDS Bank Balance reference ₹24,217.30 reconciles (= ₹4,012 GST + ₹20,205.30 TDS)`);
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');

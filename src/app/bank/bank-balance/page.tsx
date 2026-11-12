@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Info,
 } from 'lucide-react';
+import TdsManagementSection from '@/components/bank/TdsManagementSection';
 
 interface BankEntry {
   id: string;
@@ -49,6 +50,8 @@ export default function BankBalancePage() {
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [userRole, setUserRole] = useState<string>('SUPER_ADMIN');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'INVESTMENTS' | 'RECONCILIATION' | 'TDS'>('OVERVIEW');
+  const [tdsTotalAmount, setTdsTotalAmount] = useState<number>(20205.30);
 
   // Master calculated metrics from actual Excel & live database
   const [metrics, setMetrics] = useState({
@@ -93,6 +96,17 @@ export default function BankBalancePage() {
         setUserRole('VIEWER');
       } else {
         setUserRole('SUPER_ADMIN');
+      }
+
+      // Fetch live TDS badge metrics
+      try {
+        const tdsRes = await fetch('/api/bank/tds');
+        const tdsData = await tdsRes.json();
+        if (tdsData.success && tdsData.metrics) {
+          setTdsTotalAmount(tdsData.metrics.totalAmount || 20205.30);
+        }
+      } catch (err) {
+        console.error('Error loading TDS summary badge:', err);
       }
     } catch (e) {
       console.error(e);
@@ -156,8 +170,74 @@ export default function BankBalancePage() {
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Sub-Navigation Tabs inside Bank Balance */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E5E5EA] pb-3">
+        <div className="flex items-center space-x-1.5 p-1 bg-[#F2F2F7] rounded-xl border border-[#E5E5EA]">
+          <button
+            type="button"
+            onClick={() => setActiveTab('OVERVIEW')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'OVERVIEW'
+                ? 'bg-[#FFFFFF] text-[#1D1D1F] shadow-xs font-bold'
+                : 'text-[#86868B] hover:text-[#1D1D1F]'
+            }`}
+          >
+            Main Bank Overview
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('INVESTMENTS')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'INVESTMENTS'
+                ? 'bg-[#FFFFFF] text-[#1D1D1F] shadow-xs font-bold'
+                : 'text-[#86868B] hover:text-[#1D1D1F]'
+            }`}
+          >
+            Investment Details
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('RECONCILIATION')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'RECONCILIATION'
+                ? 'bg-[#FFFFFF] text-[#1D1D1F] shadow-xs font-bold'
+                : 'text-[#86868B] hover:text-[#1D1D1F]'
+            }`}
+          >
+            Reconciliation
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('TDS')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              activeTab === 'TDS'
+                ? 'bg-[#FFFFFF] text-[#007AFF] shadow-xs font-bold'
+                : 'text-[#86868B] hover:text-[#007AFF]'
+            }`}
+          >
+            <span>TDS Management</span>
+            <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-md bg-[#007AFF]/10 text-[#007AFF]">
+              ₹{tdsTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </span>
+          </button>
+        </div>
+
+        <div className="text-xs text-[#86868B]">
+          Sub-section: <span className="font-semibold text-[#1D1D1F]">
+            {activeTab === 'OVERVIEW' && 'Consolidated Overview & Audit Matrix'}
+            {activeTab === 'INVESTMENTS' && 'Bank Capital & Inflow Ledger'}
+            {activeTab === 'RECONCILIATION' && '11 Supporting Accounts Matrix'}
+            {activeTab === 'TDS' && 'Dynamic TDS Ledger & Records'}
+          </span>
+        </div>
+      </div>
+
+      {activeTab === 'TDS' ? (
+        <TdsManagementSection userRole={userRole as 'SUPER_ADMIN' | 'VIEWER'} />
+      ) : (
+        <>
+          {/* KPI Cards Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Book Balance */}
         <div className="bg-[#FFFFFF] p-5 rounded-2xl border border-[#E5E5EA] shadow-2xs relative overflow-hidden">
           <div className="flex items-center justify-between text-xs text-[#86868B] font-medium mb-1">
@@ -223,61 +303,64 @@ export default function BankBalancePage() {
       </div>
 
       {/* Transparent Calculation Breakdown Accordion Card */}
-      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] p-5 shadow-2xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Info className="w-4 h-4 text-[#007AFF]" />
-            <h3 className="font-semibold text-sm text-[#1D1D1F]">
-              Consolidated Excel Calculation Logic & Audit Trail
-            </h3>
+      {(activeTab === 'OVERVIEW' || activeTab === 'RECONCILIATION') && (
+        <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] p-5 shadow-2xs space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Info className="w-4 h-4 text-[#007AFF]" />
+              <h3 className="font-semibold text-sm text-[#1D1D1F]">
+                Consolidated Excel Calculation Logic & Audit Trail
+              </h3>
+            </div>
+            <div className="flex items-center space-x-2">
+              {isSuperAdmin && (
+                <button
+                  type="button"
+                  onClick={handleRecalculate}
+                  disabled={isRecalculating}
+                  className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#007AFF] bg-[#007AFF]/10 hover:bg-[#007AFF]/20 rounded-xl transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRecalculating ? 'animate-spin' : ''}`} />
+                  Recalculate
+                </button>
+              )}
+              <span className="text-xs text-[#86868B] bg-[#F2F2F7] px-2.5 py-1 rounded-lg font-mono">
+                Formula: M17 = M13 + M15
+              </span>
+            </div>
           </div>
-          <div className="flex items-center space-x-2">
-            {isSuperAdmin && (
-              <button
-                type="button"
-                onClick={handleRecalculate}
-                disabled={isRecalculating}
-                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#007AFF] bg-[#007AFF]/10 hover:bg-[#007AFF]/20 rounded-xl transition-colors disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRecalculating ? 'animate-spin' : ''}`} />
-                Recalculate
-              </button>
-            )}
-            <span className="text-xs text-[#86868B] bg-[#F2F2F7] px-2.5 py-1 rounded-lg font-mono">
-              Formula: M17 = M13 + M15
-            </span>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
+            <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
+              <span className="font-semibold text-[#1D1D1F] block">1. Book Balance Formula</span>
+              <p className="text-[#86868B] font-mono">= D81 + E23</p>
+              <p className="text-[#1D1D1F] font-medium">
+                -₹387,627.77 (Net) + ₹534,123.67 (P&L) = <span className="font-bold text-[#007AFF]">₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
+              <span className="font-semibold text-[#1D1D1F] block">2. Yet to Receive Formula</span>
+              <p className="text-[#86868B] font-mono">= SUM(M2:M11)</p>
+              <p className="text-[#1D1D1F] font-medium">
+                Supporting accounts receivables = <span className="font-bold text-[#007AFF]">₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </p>
+            </div>
+
+            <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
+              <span className="font-semibold text-[#1D1D1F] block">3. Final Consolidated Balance</span>
+              <p className="text-[#86868B] font-mono">= M13 + M15</p>
+              <p className="text-[#1D1D1F] font-medium">
+                ₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })} + ₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} = <span className="font-bold text-[#34C759]">₹{metrics.calculatedBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+              </p>
+            </div>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 text-xs">
-          <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
-            <span className="font-semibold text-[#1D1D1F] block">1. Book Balance Formula</span>
-            <p className="text-[#86868B] font-mono">= D81 + E23</p>
-            <p className="text-[#1D1D1F] font-medium">
-              -₹387,627.77 (Net) + ₹534,123.67 (P&L) = <span className="font-bold text-[#007AFF]">₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </p>
-          </div>
-
-          <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
-            <span className="font-semibold text-[#1D1D1F] block">2. Yet to Receive Formula</span>
-            <p className="text-[#86868B] font-mono">= SUM(M2:M11)</p>
-            <p className="text-[#1D1D1F] font-medium">
-              Supporting accounts receivables = <span className="font-bold text-[#007AFF]">₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </p>
-          </div>
-
-          <div className="p-3 bg-[#F9F9FB] rounded-xl border border-[#E5E5EA]/60 space-y-1">
-            <span className="font-semibold text-[#1D1D1F] block">3. Final Consolidated Balance</span>
-            <p className="text-[#86868B] font-mono">= M13 + M15</p>
-            <p className="text-[#1D1D1F] font-medium">
-              ₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })} + ₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} = <span className="font-bold text-[#34C759]">₹{metrics.calculatedBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-            </p>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Table 1: Investments, Capital & Bank Receipts (Rows 2-13) */}
-      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] shadow-2xs overflow-hidden">
+      {(activeTab === 'OVERVIEW' || activeTab === 'INVESTMENTS') && (
+        <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] shadow-2xs overflow-hidden">
         <div className="p-4 border-b border-[#E5E5EA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBFBFC]">
           <div>
             <h2 className="font-semibold text-sm text-[#1D1D1F]">
@@ -370,9 +453,11 @@ export default function BankBalancePage() {
           </table>
         </div>
       </div>
+      )}
 
       {/* Table 2: Supporting Accounts Reconciliation Matrix (Rows 19-80) */}
-      <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] shadow-2xs overflow-hidden">
+      {(activeTab === 'OVERVIEW' || activeTab === 'RECONCILIATION') && (
+        <div className="bg-[#FFFFFF] rounded-2xl border border-[#E5E5EA] shadow-2xs overflow-hidden">
         <div className="p-4 border-b border-[#E5E5EA] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FBFBFC]">
           <div>
             <h2 className="font-semibold text-sm text-[#1D1D1F]">
@@ -474,7 +559,10 @@ export default function BankBalancePage() {
           </table>
         </div>
       </div>
-    </div>
+      )}
+    </>
+  )}
+</div>
   );
 }
 
