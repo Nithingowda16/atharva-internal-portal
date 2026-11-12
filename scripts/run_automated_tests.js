@@ -360,11 +360,11 @@ async function runTestSuite() {
   });
   assert(mainPeriod !== null, 'Bank Balance financial period exists');
 
-  // Reconciled figures check
+  // Reconciled figures check (Updated November Accounting Period: Upload data.xlsx)
   const totalInvest = mainPeriod.totalIncome;
   const bookBalance = mainPeriod.netBalance;
-  assert(Math.abs(totalInvest - 931246.23) <= 0.05, `Total Invest ₹931,246.23 matches source Excel (found: ₹${totalInvest})`);
-  assert(Math.abs(bookBalance - 328444.82) <= 0.05, `Book Balance ₹328,444.82 matches source Excel formula D81+E23 (found: ₹${bookBalance})`);
+  assert(Math.abs(totalInvest - 916246.23) <= 0.05, `Total Invest ₹916,246.23 matches source Excel (found: ₹${totalInvest})`);
+  assert(Math.abs(bookBalance - 146495.90) <= 0.05, `Book Balance ₹146,495.90 matches source Excel formula D81+E23 (found: ₹${bookBalance})`);
 
   // Supporting accounts key math checks
   const ecoAccount = dbBankAccounts.find(a => a.accountSlug === 'eco-travels');
