@@ -2,11 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, Building2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Shield, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'admin' | 'vendor'>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,39 +54,21 @@ export default function LoginPage() {
           />
         </div>
 
-        {/* Main Sign-In Card */}
-        <div className="bg-[#FFFFFF] border border-[#EAECEF] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 sm:p-10 space-y-6">
-          {/* Tabs: Atharva Admin & Vendor Team */}
-          <div className="flex border-b border-[#E5E9EC]">
-            <button
-              type="button"
-              onClick={() => setActiveTab('admin')}
-              className={`flex-1 pb-3 text-center text-sm font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
-                activeTab === 'admin'
-                  ? 'border-b-2 border-[#007AFF] text-[#007AFF]'
-                  : 'text-[#8C9BA5] hover:text-[#1D1D1F]'
-              }`}
-            >
-              <Shield className="w-4 h-4 shrink-0 text-[#007AFF]" />
-              <span>Atharva Admin</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('vendor')}
-              className={`flex-1 pb-3 text-center text-sm font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
-                activeTab === 'vendor'
-                  ? 'border-b-2 border-[#007AFF] text-[#007AFF]'
-                  : 'text-[#8C9BA5] hover:text-[#1D1D1F]'
-              }`}
-            >
-              <Building2 className="w-4 h-4 shrink-0 text-[#8C9BA5]" />
-              <span>Vendor & Team</span>
-            </button>
+        {/* Main Sign-In Card with Curvy Borders */}
+        <div className="bg-[#FFFFFF] border border-[#EAECEF] rounded-[28px] shadow-[0_8px_30px_rgba(0,0,0,0.06)] p-8 sm:p-10 space-y-6">
+          {/* Admin Header */}
+          <div className="flex items-center space-x-2.5 pb-3 border-b border-[#EAECEF]">
+            <div className="w-8 h-8 rounded-full bg-[#EBF5FF] text-[#007AFF] flex items-center justify-center shrink-0">
+              <Shield className="w-4 h-4 text-[#007AFF]" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-[#1D1D1F]">Atharva Admin Login</h2>
+              <p className="text-[11px] text-[#8C9BA5]">Internal Finance Management Portal</p>
+            </div>
           </div>
 
           {error && (
-            <div className="p-3 bg-[#FFF0EF] border-l-4 border-[#FF3B30] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
+            <div className="p-3.5 rounded-2xl bg-[#FFF0EF] border border-[#FFD0CE] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-[#FF3B30]" />
               <span>{error}</span>
             </div>
@@ -103,18 +84,14 @@ export default function LoginPage() {
             {/* Email Field with Underline Style */}
             <div>
               <label className="block text-[11px] font-bold text-[#8C9BA5] uppercase tracking-wider mb-2">
-                {activeTab === 'admin' ? 'AUTHORIZED ADMIN EMAIL' : 'AUTHORIZED EMAIL'}
+                AUTHORIZED ADMIN EMAIL
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={
-                  activeTab === 'admin'
-                    ? 'name.admin@atharvatravels.com'
-                    : 'vendor.team@atharvatravels.com'
-                }
+                placeholder="name.admin@atharvatravels.com"
                 className="w-full bg-transparent border-b border-[#D5DCE2] focus:border-[#007AFF] pb-2.5 pt-1 text-sm text-[#1D1D1F] outline-none placeholder-[#8C9BA5] transition-colors font-medium"
               />
             </div>
@@ -145,15 +122,15 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Log In Button */}
+            {/* Curvy Log In Button */}
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className={`w-full py-3.5 font-bold text-sm transition-all duration-150 flex items-center justify-center space-x-2 rounded-none cursor-pointer ${
+                className={`w-full py-3.5 font-bold text-sm rounded-full transition-all duration-150 flex items-center justify-center space-x-2 cursor-pointer shadow-apple-btn active:scale-[0.99] disabled:opacity-50 ${
                   email && password
-                    ? 'bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs active:scale-[0.99]'
-                    : 'bg-[#EEF2F6] text-[#8C9BA5] hover:bg-[#E2E8F0]'
+                    ? 'bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs'
+                    : 'bg-[#EEF2F6] text-[#8C9BA5] hover:bg-[#007AFF] hover:text-white'
                 }`}
               >
                 {loading ? <span>Authenticating...</span> : <span>Log In</span>}
@@ -161,7 +138,7 @@ export default function LoginPage() {
             </div>
 
             {/* Reset Password Link */}
-            <div className="text-center pt-2">
+            <div className="text-center pt-1">
               <button
                 type="button"
                 onClick={() =>
