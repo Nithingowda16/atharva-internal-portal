@@ -31,11 +31,11 @@ export async function GET(req: NextRequest) {
     // Compute consolidated master metrics
     const bankBalanceAcc = accounts.find((a) => a.accountSlug === 'bank-balance');
     let masterMetrics = {
-      totalInvest: 931246.23,
-      bookBalance: 328444.82,
-      calculatedBalance: 1676617.55,
-      yetToReceive: 1348172.73,
-      totalDifference: 745371.32,
+      totalInvest: 916246.23,
+      bookBalance: 146495.90,
+      calculatedBalance: 1648617.55,
+      yetToReceive: 1502121.65,
+      totalDifference: 732371.32,
       checkVariance: 0.0,
       status: 'RECONCILED',
     };
@@ -44,6 +44,10 @@ export async function GET(req: NextRequest) {
       const p = bankBalanceAcc.periods[0];
       masterMetrics.bookBalance = p.netBalance;
       masterMetrics.calculatedBalance = p.closingBalance;
+      masterMetrics.totalInvest = p.totalIncome;
+      masterMetrics.yetToReceive = p.closingBalance - p.netBalance;
+      masterMetrics.totalDifference = p.closingBalance - p.totalIncome;
+      masterMetrics.status = p.status || 'RECONCILED';
     }
 
     // Summary cards data

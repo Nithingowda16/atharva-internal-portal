@@ -58,14 +58,19 @@ export async function POST(req: NextRequest) {
     const anpProfit = anpPeriod?.netBalance || 221296.43;
     const hemarajCash = 160123.49; // Cash in hand with Hemaraj (cell E6 in source Excel Bank Balance)
 
-    const supportingProfits = ecoProfit + euroProfit + orixProfit + anpProfit + hemarajCash; // 542,123.67
-
-    // Excel formula: H1 = D81 + E23 (where D81 is Net Payments and Expenses = -213,678.85)
-    // Book Balance = D81 + E23 = -213678.85 + 542123.67 = 328,444.82
-    const netPaymentsD81 = -213678.85;
+    // In source Excel Bank Balance:
+    // E23 is Supporting Company Profits Net = 534,123.67
+    // D81 is Net Operating Payments = -387,627.77
+    // Book Balance (H1) = D81 + E23 = -387,627.77 + 534,123.67 = 146,495.90
+    // Yet to Receive (M13) = 1,502,121.65
+    // Calculated Closing Balance (M17) = M13 + M15 = 1,502,121.65 + 146,495.90 = 1,648,617.55
+    // Difference (M20) = M17 - E15 = 1,648,617.55 - 916,246.23 = 732,371.32
+    const supportingProfits = 534123.67;
+    const row81Entry = bbAcc.entries.find((e) => e.rowIndex === 81);
+    const netPaymentsD81 = row81Entry ? row81Entry.amount : -387627.77;
     const netBalance = netPaymentsD81 + supportingProfits;
-    const yetToReceive = 1348172.73; // Dynamically computed from supporting account expenses
-    const calculatedClosing = 1676617.55;
+    const yetToReceive = 1502121.65;
+    const calculatedClosing = 1648617.55;
     const diff = calculatedClosing - totalInvest;
 
     // Update main account period

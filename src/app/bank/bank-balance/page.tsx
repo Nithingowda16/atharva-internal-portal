@@ -50,13 +50,13 @@ export default function BankBalancePage() {
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [userRole, setUserRole] = useState<string>('SUPER_ADMIN');
 
-  // Master calculated metrics from actual Excel
+  // Master calculated metrics from actual Excel & live database
   const [metrics, setMetrics] = useState({
-    totalInvest: 931246.23,
-    bookBalance: 328444.82,
-    calculatedBalance: 1676617.55,
-    yetToReceive: 1348172.73,
-    totalDifference: 745371.32,
+    totalInvest: 916246.23,
+    bookBalance: 146495.90,
+    calculatedBalance: 1648617.55,
+    yetToReceive: 1502121.65,
+    totalDifference: 732371.32,
     checkVariance: 0.0,
     status: 'RECONCILED',
   });
@@ -68,6 +68,24 @@ export default function BankBalancePage() {
       const data = await res.json();
       if (data.success && data.entries) {
         setEntries(data.entries);
+      }
+      if (data.periods && data.periods.length > 0) {
+        const p = data.periods[0];
+        const calculatedBalance = Number(p.closingBalance) || 1648617.55;
+        const bookBalance = Number(p.netBalance) || 146495.90;
+        const totalInvest = Number(p.totalIncome) || 916246.23;
+        const yetToReceive = calculatedBalance - bookBalance;
+        const totalDifference = calculatedBalance - totalInvest;
+
+        setMetrics({
+          bookBalance,
+          calculatedBalance,
+          totalInvest,
+          yetToReceive,
+          totalDifference,
+          checkVariance: 0.0,
+          status: p.status || 'RECONCILED',
+        });
       }
       // Also fetch user role
       const authRes = await fetch('/api/users');
@@ -236,7 +254,7 @@ export default function BankBalancePage() {
             <span className="font-semibold text-[#1D1D1F] block">1. Book Balance Formula</span>
             <p className="text-[#86868B] font-mono">= D81 + E23</p>
             <p className="text-[#1D1D1F] font-medium">
-              -₹213,678.85 (Net) + ₹542,123.67 (P&L) = <span className="font-bold text-[#007AFF]">₹328,444.82</span>
+              -₹387,627.77 (Net) + ₹534,123.67 (P&L) = <span className="font-bold text-[#007AFF]">₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </p>
           </div>
 
@@ -244,7 +262,7 @@ export default function BankBalancePage() {
             <span className="font-semibold text-[#1D1D1F] block">2. Yet to Receive Formula</span>
             <p className="text-[#86868B] font-mono">= SUM(M2:M11)</p>
             <p className="text-[#1D1D1F] font-medium">
-              Supporting accounts receivables = <span className="font-bold text-[#007AFF]">₹1,348,172.73</span>
+              Supporting accounts receivables = <span className="font-bold text-[#007AFF]">₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </p>
           </div>
 
@@ -252,7 +270,7 @@ export default function BankBalancePage() {
             <span className="font-semibold text-[#1D1D1F] block">3. Final Consolidated Balance</span>
             <p className="text-[#86868B] font-mono">= M13 + M15</p>
             <p className="text-[#1D1D1F] font-medium">
-              ₹1,348,172.73 + ₹328,444.82 = <span className="font-bold text-[#34C759]">₹1,676,617.55</span>
+              ₹{metrics.yetToReceive.toLocaleString('en-IN', { minimumFractionDigits: 2 })} + ₹{metrics.bookBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })} = <span className="font-bold text-[#34C759]">₹{metrics.calculatedBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
