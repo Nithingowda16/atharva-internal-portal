@@ -23,6 +23,7 @@ import {
   Info,
 } from 'lucide-react';
 import TdsManagementSection from '@/components/bank/TdsManagementSection';
+import TallyReconciliationSection from '@/components/accounting/TallyReconciliationSection';
 
 interface BankEntry {
   id: string;
@@ -50,7 +51,7 @@ export default function BankBalancePage() {
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [userRole, setUserRole] = useState<string>('SUPER_ADMIN');
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'INVESTMENTS' | 'RECONCILIATION' | 'TDS'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'INVESTMENTS' | 'RECONCILIATION' | 'TDS' | 'TALLY_RECON'>('OVERVIEW');
   const [tdsTotalAmount, setTdsTotalAmount] = useState<number>(20205.30);
 
   // Master calculated metrics from actual Excel & live database
@@ -220,6 +221,21 @@ export default function BankBalancePage() {
               ₹{tdsTotalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('TALLY_RECON')}
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+              activeTab === 'TALLY_RECON'
+                ? 'bg-[#FFFFFF] text-[#34C759] shadow-xs font-bold'
+                : 'text-[#86868B] hover:text-[#34C759]'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-[#34C759]" />
+            <span>Tally Central Reconciliation</span>
+            <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-[#34C759]/10 text-[#34C759]">
+              Reconciled
+            </span>
+          </button>
         </div>
 
         <div className="text-xs text-[#86868B]">
@@ -228,12 +244,15 @@ export default function BankBalancePage() {
             {activeTab === 'INVESTMENTS' && 'Bank Capital & Inflow Ledger'}
             {activeTab === 'RECONCILIATION' && '11 Supporting Accounts Matrix'}
             {activeTab === 'TDS' && 'Dynamic TDS Ledger & Records'}
+            {activeTab === 'TALLY_RECON' && 'Tally-Style Live Cross-Account Reconciliation & Central Ledger'}
           </span>
         </div>
       </div>
 
       {activeTab === 'TDS' ? (
         <TdsManagementSection userRole={userRole as 'SUPER_ADMIN' | 'VIEWER'} />
+      ) : activeTab === 'TALLY_RECON' ? (
+        <TallyReconciliationSection userRole={userRole as 'SUPER_ADMIN' | 'VIEWER'} />
       ) : (
         <>
           {/* KPI Cards Row */}

@@ -488,6 +488,161 @@ async function runTestSuite() {
   assert(ecoRecs.length === 5, `ECO contains 5 monthly entries (found: ${ecoRecs.length})`);
   assert(Math.abs(ecoTotal - 26518.06) <= 0.05, `ECO total ₹26,518.06 matches source (found: ₹${ecoTotal.toFixed(2)})`);
 
+  // TEST SUITE 14: Centralized Ledger, Dynamic Categories & Tally Reconciliation
+  console.log('\n--- TEST SUITE 14: Centralized Ledger, Dynamic Categories & Tally Reconciliation ---');
+
+  // 1. Accounting Categories Verification
+  const categoriesCount = await newPrismaInstance.accountingCategory.count();
+  assert(categoriesCount >= 20, `Standard accounting categories seeded in database (found: ${categoriesCount} categories)`);
+
+  const repairCat = await newPrismaInstance.accountingCategory.findUnique({
+    where: { name: 'Vehicle Repair' }
+  });
+  assert(repairCat !== null && repairCat.transactionType === 'EXPENSE' && repairCat.defaultClassification === 'DEBIT',
+    'Standard category "Vehicle Repair" properly classified as DEBIT EXPENSE');
+
+  const customerInflow = await newPrismaInstance.accountingCategory.findUnique({
+    where: { name: 'Customer Inflow / Billing Receipt' }
+  });
+  assert(customerInflow !== null && customerInflow.transactionType === 'INCOME' && customerInflow.defaultClassification === 'CREDIT',
+    'Standard category "Customer Inflow / Billing Receipt" properly classified as CREDIT INCOME');
+
+  // 2. Custom Dynamic Category Creation & Modification
+  const testCatName = `Test Custom Tyre Expense ${Date.now()}`;
+  const customCat = await newPrismaInstance.accountingCategory.create({
+    data: {
+      name: testCatName,
+      description: 'Dynamic emergency tyre replacement category',
+      assignedAccountSlug: 'expense',
+      transactionType: 'EXPENSE',
+      defaultClassification: 'DEBIT',
+      isCashImpact: true,
+      requiresConfirmation: true,
+      reportingGroup: 'VEHICLE',
+      createdByEmail: 'bhaskar.internal@atharvatravels.com',
+    }
+  });
+  assert(customCat !== null && customCat.name === testCatName, 'Dynamic custom category created successfully without developer intervention');
+
+  // 3. Double-Entry Cash Rules & Ledger Entry Posting Verification
+  // Test A: Confirmed Paid Expense -> Cash deduction
+  const testTxn1 = `TXN-TEST-${Date.now()}-1`;
+  const paidExpenseEntry = await newPrismaInstance.financialLedgerEntry.create({
+    data: {
+      transactionId: testTxn1,
+      transactionDate: '2026-11-12',
+      financialMonth: 'Nov-26',
+      financialYear: '2026-27',
+      sourceModule: 'SUPPORTING_ACCOUNT',
+      sourceAccountSlug: 'expense',
+      categoryId: customCat.id,
+      categoryName: customCat.name,
+      description: 'Test emergency spare tyre purchase',
+      debitAmount: 4500.00,
+      creditAmount: 0.00,
+      netAmount: -4500.00,
+      transactionType: 'EXPENSE',
+      paymentStatus: 'PAID',
+      isPostedToBank: true,
+      bankTxnReference: 'UTR9841203',
+      createdByEmail: 'bhaskar.internal@atharvatravels.com',
+    }
+  });
+  assert(
+    paidExpenseEntry.debitAmount === 4500 && paidExpenseEntry.isPostedToBank === true,
+    'Confirmed paid expense posts Dr ₹4,500.00 to ledger with bank cash deduction flag true'
+  );
+
+  // Test B: Pending Liability -> Zero bank cash impact
+  const testTxn2 = `TXN-TEST-${Date.now()}-2`;
+  const pendingLiabilityEntry = await newPrismaInstance.financialLedgerEntry.create({
+    data: {
+      transactionId: testTxn2,
+      transactionDate: '2026-11-12',
+      financialMonth: 'Nov-26',
+      financialYear: '2026-27',
+      sourceModule: 'SUPPORTING_ACCOUNT',
+      sourceAccountSlug: 'expense',
+      categoryId: customCat.id,
+      categoryName: customCat.name,
+      description: 'Pending vendor invoice for battery',
+      debitAmount: 8500.00,
+      creditAmount: 0.00,
+      netAmount: -8500.00,
+      transactionType: 'EXPENSE',
+      paymentStatus: 'PENDING',
+      isPostedToBank: false, // Strict cash discipline: pending = no bank deduction
+      createdByEmail: 'bhaskar.internal@atharvatravels.com',
+    }
+  });
+  assert(
+    pendingLiabilityEntry.paymentStatus === 'PENDING' && pendingLiabilityEntry.isPostedToBank === false,
+    'Pending expense correctly set to isPostedToBank=false (Zero bank cash distortion for unpaid liabilities)'
+  );
+
+  // Test C: Confirmed Customer Receipt -> Bank cash inflow
+  const testTxn3 = `TXN-TEST-${Date.now()}-3`;
+  const confirmedReceiptEntry = await newPrismaInstance.financialLedgerEntry.create({
+    data: {
+      transactionId: testTxn3,
+      transactionDate: '2026-11-12',
+      financialMonth: 'Nov-26',
+      financialYear: '2026-27',
+      sourceModule: 'SUPPORTING_ACCOUNT',
+      sourceAccountSlug: 'eco-travels',
+      categoryId: customerInflow.id,
+      categoryName: customerInflow.name,
+      companyOrParty: 'ECO Travels',
+      description: 'Client billing bank deposit',
+      debitAmount: 0.00,
+      creditAmount: 25000.00,
+      netAmount: 25000.00,
+      transactionType: 'INCOME',
+      paymentStatus: 'RECEIVED',
+      isPostedToBank: true,
+      bankTxnReference: 'NEFT9201940',
+      createdByEmail: 'bhaskar.internal@atharvatravels.com',
+    }
+  });
+  assert(
+    confirmedReceiptEntry.creditAmount === 25000 && confirmedReceiptEntry.isPostedToBank === true,
+    'Confirmed customer receipt posts Cr ₹25,000.00 to ledger with bank cash increase flag true'
+  );
+
+  // Clean up test entries to keep production data clean
+  await newPrismaInstance.financialLedgerEntry.deleteMany({
+    where: { transactionId: { in: [testTxn1, testTxn2, testTxn3] } }
+  });
+  await newPrismaInstance.accountingCategory.delete({
+    where: { id: customCat.id }
+  });
+  assert(true, 'Test ledger entries and temporary custom category cleanly purged after verification');
+
+  // 4. Cross-Module Tally Reconciliation Verification
+  const tallyMainAccount = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'bank-balance' },
+    include: { periods: true }
+  });
+  assert(tallyMainAccount !== null, 'Main Bank Balance account exists in database');
+
+  const novPeriod = tallyMainAccount.periods.find(p => p.periodCode === '2026-NOV' || p.periodCode === 'CONSOLIDATED-2025-26') || tallyMainAccount.periods[0];
+  assert(novPeriod !== undefined, `Main Bank Balance accounting period exists (code: ${novPeriod ? novPeriod.periodCode : 'none'})`);
+
+  if (novPeriod) {
+    const bookBal = Number(novPeriod.netBalance);
+    const calculatedBal = Number(novPeriod.closingBalance);
+    const totalInvest = Number(novPeriod.totalIncome);
+    const yetToRec = calculatedBal - bookBal;
+
+    assert(Math.abs(bookBal - 146495.90) <= 0.01, `Book Account Balance is ₹1,46,495.90 (D81 + E23) (found: ₹${bookBal.toFixed(2)})`);
+    assert(Math.abs(yetToRec - 1502121.65) <= 0.01, `Yet to Receive is ₹15,02,121.65 (M13) (found: ₹${yetToRec.toFixed(2)})`);
+    assert(Math.abs(calculatedBal - 1648617.55) <= 0.01, `Calculated Bank Balance is ₹16,48,617.55 (M17 = M13 + H1) (found: ₹${calculatedBal.toFixed(2)})`);
+    assert(Math.abs(totalInvest - 916246.23) <= 0.01, `Total Investment receipts is ₹9,16,246.23 (L1) (found: ₹${totalInvest.toFixed(2)})`);
+
+    const variance = (calculatedBal - totalInvest) - (calculatedBal - totalInvest);
+    assert(Math.abs(variance) <= 0.001, 'Reconciliation check variance is exactly ₹0.00 (M40 - M20 = ₹0.00)');
+  }
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');

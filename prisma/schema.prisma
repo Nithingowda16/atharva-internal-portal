@@ -447,3 +447,67 @@ model FuelCommissionVersion {
 
   @@index([recordId, versionNumber])
 }
+
+
+model AccountingCategory {
+  id                    String                 @id @default(cuid())
+  name                  String                 @unique // e.g. "Vehicle Repair", "Driver Penalty", "Insurance", "New Car EMI"
+  description           String?
+  assignedAccountSlug   String                 @default("ALL") // "ALL", "sst", "expense", "harish-gs", etc.
+  transactionType       String                 // "EXPENSE", "INCOME", "DEDUCTION", "ADDITION", "ADJUSTMENT", "TRANSFER"
+  defaultClassification String                 @default("DEBIT") // "DEBIT" or "CREDIT"
+  isCashImpact          Boolean                @default(true) // Whether payment impacts bank cash
+  requiresConfirmation  Boolean                @default(true) // Requires status "PAID" or "RECEIVED"
+  reportingGroup        String?                // "OPERATING", "VEHICLE", "DRIVER", "TAX", "ADMIN"
+  isActive              Boolean                @default(true)
+  createdById           String?
+  createdByEmail        String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  ledgerEntries         FinancialLedgerEntry[]
+
+  @@index([assignedAccountSlug])
+  @@index([transactionType])
+  @@index([isActive])
+}
+
+model FinancialLedgerEntry {
+  id                   String              @id @default(cuid())
+  transactionId        String              @unique // Unique sequential ID, e.g. "TXN-202611-001"
+  transactionDate      String              // "YYYY-MM-DD"
+  financialMonth       String              // "Nov-26", "Dec-26", etc.
+  financialYear        String              // "2026-27"
+  sourceModule         String              // "SUPPORTING_ACCOUNT", "TDS", "FUEL_COMMISSION", "DIRECT_BANK"
+  sourceAccountSlug    String?             // "sst", "expense", "bank-balance", etc.
+  sourceRecordId       String?             // Foreign ID in BankAccountEntry / TdsRecord / FuelCommissionRecord
+  categoryId           String?
+  category             AccountingCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  categoryName         String              // Fallback category name
+  companyOrParty       String?             // Client or vendor name
+  description          String
+  debitAmount          Float               @default(0) // Dr amount
+  creditAmount         Float               @default(0) // Cr amount
+  netAmount            Float               @default(0) // Net balance movement
+  transactionType      String              // "EXPENSE", "RECEIPT", "PAYMENT", "ADJUSTMENT", "TRANSFER"
+  paymentStatus        String              @default("PAID") // "PAID", "RECEIVED", "PENDING", "NON_CASH"
+  paymentMode          String?             // "BANK_TRANSFER", "NEFT", "RTGS", "CHEQUE", "CASH", "INTERNAL"
+  bankAccountRef       String?             @default("Bank Balance (Main)")
+  bankTxnReference     String?             // UTR, Cheque number, deposit slip reference
+  isPostedToBank       Boolean             @default(true)
+  postedAt             DateTime?           @default(now())
+  isReconciled         Boolean             @default(false)
+  reconciledAt         DateTime?
+  isReversed           Boolean             @default(false)
+  reversalReason       String?
+  reversedAt           DateTime?
+  remarks              String?
+  createdById          String?
+  createdByEmail       String?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([financialYear, financialMonth])
+  @@index([sourceAccountSlug])
+  @@index([paymentStatus])
+  @@index([isPostedToBank])
+}

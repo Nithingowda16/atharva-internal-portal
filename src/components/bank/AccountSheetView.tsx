@@ -16,7 +16,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Save,
+  Tag,
 } from 'lucide-react';
+import CategoryManagerModal from '@/components/accounting/CategoryManagerModal';
 
 export interface SheetEntry {
   id: string;
@@ -86,6 +88,8 @@ export default function AccountSheetView({
   const [search, setSearch] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
   const [userRole, setUserRole] = useState<'SUPER_ADMIN' | 'VIEWER'>('SUPER_ADMIN');
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -109,6 +113,8 @@ export default function AccountSheetView({
     invoiceDate: '',
     invoiceNo: '',
     comments: '',
+    paymentStatus: 'PAID',
+    bankTxnReference: '',
   });
 
   const [periodFormData, setPeriodFormData] = useState({
@@ -143,8 +149,21 @@ export default function AccountSheetView({
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`/api/accounting/categories?accountSlug=${slug}`);
+      const data = await res.json();
+      if (data.success && Array.isArray(data.categories)) {
+        setAvailableCategories(data.categories.map((c: any) => c.name));
+      }
+    } catch (e) {
+      console.error('Failed to fetch accounting categories:', e);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchCategories();
   }, [slug]);
 
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
@@ -321,6 +340,15 @@ export default function AccountSheetView({
         <div className="flex items-center space-x-2">
           {isSuperAdmin && (
             <>
+              <button
+                type="button"
+                onClick={() => setIsCatModalOpen(true)}
+                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#007AFF] bg-[#007AFF]/10 hover:bg-[#007AFF]/20 rounded-xl transition-colors"
+                title="Manage Dynamic Accounting Categories"
+              >
+                <Tag className="w-3.5 h-3.5 mr-1 text-[#007AFF]" /> Categories
+              </button>
+
               <button
                 type="button"
                 onClick={() => setIsPeriodModalOpen(true)}
@@ -564,15 +592,68 @@ export default function AccountSheetView({
                 </div>
               </div>
 
-              <div>
-                <label className="font-medium text-[#1D1D1F] block mb-1">Formula or Source Reference</label>
-                <input
-                  type="text"
-                  value={formData.formulaString}
-                  onChange={(e) => setFormData({ ...formData, formulaString: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs font-mono"
-                  placeholder="e.g. SUM(C3:C29)"
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">
+                    Accounting Category
+                    <button
+                      type="button"
+                      onClick={() => setIsCatModalOpen(true)}
+                      className="ml-2 text-[#007AFF] hover:underline text-[10px]"
+                    >
+                      + Manage
+                    </button>
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs bg-white"
+                  >
+                    <option value={sheetTitle}>{sheetTitle} (Default)</option>
+                    {availableCategories
+                      .filter((c) => c !== sheetTitle)
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Payment Status (Cash Flow)</label>
+                  <select
+                    value={formData.paymentStatus}
+                    onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs bg-white font-medium"
+                  >
+                    <option value="PAID">PAID (Confirmed Bank Outflow)</option>
+                    <option value="RECEIVED">RECEIVED (Confirmed Bank Inflow)</option>
+                    <option value="PENDING">PENDING (Liability/Receivable - No Bank Impact)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Bank Reference (UTR / Cheque)</label>
+                  <input
+                    type="text"
+                    value={formData.bankTxnReference || ''}
+                    onChange={(e) => setFormData({ ...formData, bankTxnReference: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
+                    placeholder="e.g. UTR12984029"
+                  />
+                </div>
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Formula or Source Reference</label>
+                  <input
+                    type="text"
+                    value={formData.formulaString}
+                    onChange={(e) => setFormData({ ...formData, formulaString: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs font-mono"
+                    placeholder="e.g. SUM(C3:C29)"
+                  />
+                </div>
               </div>
 
               <div>
@@ -622,15 +703,34 @@ export default function AccountSheetView({
             </div>
 
             <form onSubmit={handleUpdateEntry} className="p-5 space-y-4 text-xs">
-              <div>
-                <label className="font-medium text-[#1D1D1F] block mb-1">Particulars</label>
-                <input
-                  type="text"
-                  value={editingEntry.particulars || ''}
-                  onChange={(e) => setEditingEntry({ ...editingEntry, particulars: e.target.value })}
-                  className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Particulars</label>
+                  <input
+                    type="text"
+                    value={editingEntry.particulars || ''}
+                    onChange={(e) => setEditingEntry({ ...editingEntry, particulars: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Category</label>
+                  <select
+                    value={editingEntry.category || sheetTitle}
+                    onChange={(e) => setEditingEntry({ ...editingEntry, category: e.target.value })}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs bg-white"
+                  >
+                    <option value={sheetTitle}>{sheetTitle} (Default)</option>
+                    {availableCategories
+                      .filter((c) => c !== sheetTitle)
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -646,14 +746,16 @@ export default function AccountSheetView({
                   />
                 </div>
                 <div>
-                  <label className="font-medium text-[#1D1D1F] block mb-1">Net (₹)</label>
-                  <input
-                    type="number"
-                    step="any"
-                    value={editingEntry.netAmount || ''}
-                    onChange={(e) => setEditingEntry({ ...editingEntry, netAmount: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
-                  />
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Payment Status (Cash Flow)</label>
+                  <select
+                    value={(editingEntry as any).paymentStatus || 'PAID'}
+                    onChange={(e) => setEditingEntry({ ...editingEntry, paymentStatus: e.target.value } as any)}
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs bg-white font-medium"
+                  >
+                    <option value="PAID">PAID (Confirmed Bank Outflow)</option>
+                    <option value="RECEIVED">RECEIVED (Confirmed Bank Inflow)</option>
+                    <option value="PENDING">PENDING (Liability/Receivable - No Bank Impact)</option>
+                  </select>
                 </div>
               </div>
 
@@ -762,6 +864,14 @@ export default function AccountSheetView({
           </div>
         </div>
       )}
+
+      {/* Category Manager Modal */}
+      <CategoryManagerModal
+        isOpen={isCatModalOpen}
+        onClose={() => setIsCatModalOpen(false)}
+        onCategoryAdded={fetchCategories}
+        currentAccountSlug={slug}
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getCurrentUser, checkPermission } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
+import { postToCentralLedger, reverseInCentralLedger } from '@/lib/accountingLedger';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -168,6 +169,31 @@ export async function POST(
       reason: `Added new entry to ${account.accountName}: ${entry.particulars} (₹${entry.amount})`,
     });
 
+    // Centralized Ledger Posting & Bank Balance Synchronization
+    const pStatus = body.paymentStatus || (Number(entry.paidAmount) > 0 ? 'PAID' : Number(entry.receivedAmount) > 0 ? 'RECEIVED' : 'PENDING');
+    try {
+      await postToCentralLedger({
+        sourceModule: 'SUPPORTING_ACCOUNT',
+        sourceAccountSlug: slug,
+        sourceRecordId: entry.id,
+        transactionDate: entry.entryDate || undefined,
+        financialMonth: entry.periodCode || 'Nov-26',
+        financialYear: '2026-27',
+        categoryName: entry.category || 'General',
+        companyOrParty: entry.sourceReference || undefined,
+        description: `${account.accountName}: ${entry.particulars}`,
+        amount: entry.amount,
+        transactionType: Number(entry.amount) < 0 || pStatus === 'PAID' ? 'EXPENSE' : 'INCOME',
+        paymentStatus: pStatus,
+        paymentMode: body.paymentMode || 'BANK_TRANSFER',
+        bankTxnReference: body.bankTxnReference || entry.sourceReference || undefined,
+        remarks: entry.remarks || undefined,
+        user: { id: user.id, email: user.email },
+      });
+    } catch (ledgerErr) {
+      console.error('Failed to post supporting account entry to central ledger:', ledgerErr);
+    }
+
     return NextResponse.json({ success: true, entry });
   } catch (err: any) {
     console.error('Error creating bank entry:', err);
@@ -230,6 +256,31 @@ export async function PUT(
       reason: `Updated entry ${updated.particulars} in ${account.accountName}`,
     });
 
+    // Centralized Ledger Update & Bank Balance Synchronization
+    const pStatus = body.paymentStatus || (Number(updated.paidAmount) > 0 ? 'PAID' : Number(updated.receivedAmount) > 0 ? 'RECEIVED' : 'PENDING');
+    try {
+      await postToCentralLedger({
+        sourceModule: 'SUPPORTING_ACCOUNT',
+        sourceAccountSlug: slug,
+        sourceRecordId: updated.id,
+        transactionDate: updated.entryDate || undefined,
+        financialMonth: updated.periodCode || 'Nov-26',
+        financialYear: '2026-27',
+        categoryName: updated.category || 'General',
+        companyOrParty: updated.sourceReference || undefined,
+        description: `${account.accountName}: ${updated.particulars}`,
+        amount: updated.amount,
+        transactionType: Number(updated.amount) < 0 || pStatus === 'PAID' ? 'EXPENSE' : 'INCOME',
+        paymentStatus: pStatus,
+        paymentMode: body.paymentMode || 'BANK_TRANSFER',
+        bankTxnReference: body.bankTxnReference || updated.sourceReference || undefined,
+        remarks: updated.remarks || undefined,
+        user: { id: user.id, email: user.email },
+      });
+    } catch (ledgerErr) {
+      console.error('Failed to sync updated entry with central ledger:', ledgerErr);
+    }
+
     return NextResponse.json({ success: true, entry: updated });
   } catch (err: any) {
     console.error('Error updating bank entry:', err);
@@ -252,6 +303,7 @@ export async function DELETE(
   }
 
   try {
+    const { slug } = params;
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
 
@@ -292,6 +344,13 @@ export async function DELETE(
       newState: JSON.stringify(updated),
       reason: `Soft-deleted entry ${existing.particulars} from bank account`,
     });
+
+    // Reverse in Central Ledger & Restore any deducted/credited bank cash
+    try {
+      await reverseInCentralLedger(id, { id: user.id, email: user.email }, `Entry deleted from ${slug}`);
+    } catch (e) {
+      console.error('Error reversing in central ledger:', e);
+    }
 
     return NextResponse.json({ success: true, entry: updated });
   } catch (err: any) {
