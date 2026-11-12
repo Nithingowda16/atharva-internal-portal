@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import Link from 'next/link';
 import {
@@ -143,6 +143,13 @@ export default function FleetManagementPage() {
   const [tdsAmtEdit, setTdsAmtEdit] = useState('');
   const [customValuesEdit, setCustomValuesEdit] = useState<Record<string, string>>({});
 
+  // Synchronized Top Horizontal Scroller Refs
+  const topScrollRef = useRef<HTMLDivElement>(null);
+  const tableScrollRef = useRef<HTMLDivElement>(null);
+  const tableElementRef = useRef<HTMLTableElement>(null);
+  const isSyncingScroll = useRef(false);
+  const [tableWidth, setTableWidth] = useState(1650);
+
   // Inline Row Edit Mode for fleet table
   const [inlineEditingId, setInlineEditingId] = useState<string | null>(null);
   const [inlineForm, setInlineForm] = useState<{
@@ -150,6 +157,7 @@ export default function FleetManagementPage() {
     category: string;
     carName: string;
     driverId: string;
+    driverName: string;
     driverPhone: string;
     ownerName: string;
     contactNumber: string;
@@ -165,6 +173,7 @@ export default function FleetManagementPage() {
     category: 'SEDAN',
     carName: '',
     driverId: '',
+    driverName: '',
     driverPhone: '',
     ownerName: '',
     contactNumber: '',
@@ -364,6 +373,62 @@ export default function FleetManagementPage() {
     setIsAddVehicleOpen(true);
   };
 
+  // Synchronize Top and Table Horizontal Scrollbars
+  useEffect(() => {
+    const updateWidth = () => {
+      if (tableElementRef.current) {
+        setTableWidth(tableElementRef.current.scrollWidth);
+      }
+    };
+    updateWidth();
+    const timeoutId = setTimeout(updateWidth, 150);
+    window.addEventListener('resize', updateWidth);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateWidth);
+    };
+  }, [vehicles, customColumns]);
+
+  const handleTopScroll = () => {
+    if (isSyncingScroll.current) return;
+    isSyncingScroll.current = true;
+    if (tableScrollRef.current && topScrollRef.current) {
+      tableScrollRef.current.scrollLeft = topScrollRef.current.scrollLeft;
+    }
+    requestAnimationFrame(() => {
+      isSyncingScroll.current = false;
+    });
+  };
+
+  const handleTableScroll = () => {
+    if (isSyncingScroll.current) return;
+    isSyncingScroll.current = true;
+    if (topScrollRef.current && tableScrollRef.current) {
+      topScrollRef.current.scrollLeft = tableScrollRef.current.scrollLeft;
+    }
+    requestAnimationFrame(() => {
+      isSyncingScroll.current = false;
+    });
+  };
+
+  // Quick Inline Update for Driver Name directly from table input box
+  const handleQuickUpdateDriverName = async (vehicleId: string, newDriverName: string) => {
+    try {
+      const res = await fetch(`/api/fleet/vehicles/${vehicleId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ driverName: newDriverName }),
+      });
+      if (res.ok) {
+        fetchVehicles();
+        fetchSummary();
+        fetchDrivers();
+      }
+    } catch (e) {
+      console.error('Error updating driver name:', e);
+    }
+  };
+
   // Inline Row Edit Mode Handlers
   const handleStartInlineEdit = (v: any) => {
     const existingCustoms = customRowData[v.id] || {};
@@ -379,6 +444,7 @@ export default function FleetManagementPage() {
       category: v.category || 'SEDAN',
       carName: v.carName || '',
       driverId: v.currentDriver?.id || '',
+      driverName: v.currentDriver?.name || '',
       driverPhone: v.currentDriver?.phone || '',
       ownerName: v.ownerName || '',
       contactNumber: v.contactNumber || '',
@@ -405,6 +471,7 @@ export default function FleetManagementPage() {
         category: inlineForm.category,
         carName: inlineForm.carName || inlineForm.registrationNumber,
         driverId: inlineForm.driverId,
+        driverName: inlineForm.driverName,
         driverPhone: inlineForm.driverPhone,
         ownerName: inlineForm.ownerName,
         contactNumber: inlineForm.contactNumber,
@@ -953,7 +1020,7 @@ export default function FleetManagementPage() {
                   title="Add dynamic column to fleet table next to 1% TDS"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Column</span>
+                  <span>Add Column</span>
                 </button>
               )}
 
@@ -973,8 +1040,19 @@ export default function FleetManagementPage() {
 
           {/* Table */}
           <div className="bg-[#FFFFFF] rounded-[24px] border border-[#E5E5EA] shadow-apple-card overflow-hidden">
-            <div className="overflow-x-auto relative scrollbar-thin">
-              <table className="w-full text-xs text-left border-collapse min-w-[1350px]">
+            {/* Top Horizontal Scroller directly above table header & Vehicle Number */}
+            <div
+              ref={topScrollRef}
+              onScroll={handleTopScroll}
+              className="w-full overflow-x-auto overflow-y-hidden border-b border-[#E5E5EA] bg-[#F2F2F7]/70 scrollbar-thin transition-all select-none"
+              style={{ minHeight: '12px', height: '12px' }}
+              title="Top horizontal scroller — drag to scroll across all columns"
+            >
+              <div style={{ width: `${Math.max(tableWidth, 1400)}px`, height: '1px' }} />
+            </div>
+
+            <div ref={tableScrollRef} onScroll={handleTableScroll} className="overflow-x-auto relative scrollbar-thin">
+              <table ref={tableElementRef} className="w-full text-xs text-left border-collapse min-w-[1350px]">
                 <thead className="bg-[#F2F2F7] text-[#1D1D1F] font-semibold border-b border-[#E5E5EA]">
                   <tr>
                     {isSuperAdmin && (
@@ -1032,7 +1110,7 @@ export default function FleetManagementPage() {
                           title="Add dynamic column next to 1% TDS"
                         >
                           <Plus className="w-3 h-3" />
-                          <span>+ Add Column</span>
+                          <span>Add Column</span>
                         </button>
                       </th>
                     )}
@@ -1110,28 +1188,25 @@ export default function FleetManagementPage() {
                               </select>
                             </td>
 
-                            {/* 3. Driver Name */}
+                            {/* 3. Driver Name - Input Box */}
                             <td className="py-2 px-2.5 whitespace-nowrap">
-                              <select
-                                className="w-32 px-1.5 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
-                                value={inlineForm.driverId}
+                              <input
+                                type="text"
+                                list="driver-names-datalist"
+                                className="w-32 px-2 py-1 text-xs bg-white border border-[#007AFF] rounded-md focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30"
+                                placeholder="Enter Driver Name"
+                                value={inlineForm.driverName}
                                 onChange={(e) => {
-                                  const dId = e.target.value;
-                                  const matched = drivers.find((d) => d.id === dId);
+                                  const name = e.target.value;
+                                  const matched = drivers.find((d) => d.name.toLowerCase() === name.trim().toLowerCase());
                                   setInlineForm((prev) => ({
                                     ...prev,
-                                    driverId: dId,
+                                    driverName: name,
+                                    driverId: matched?.id || '',
                                     driverPhone: matched?.phone || prev.driverPhone,
                                   }));
                                 }}
-                              >
-                                <option value="">Unassigned</option>
-                                {drivers.map((d) => (
-                                  <option key={d.id} value={d.id}>
-                                    {d.name}
-                                  </option>
-                                ))}
-                              </select>
+                              />
                             </td>
 
                             {/* 4. Driver Contact */}
@@ -1347,23 +1422,45 @@ export default function FleetManagementPage() {
                             </span>
                           </td>
 
-                          {/* 3. Driver Name */}
+                          {/* 3. Driver Name - Direct Input Box */}
                           <td className="py-2.5 px-2.5 whitespace-nowrap">
-                            {v.currentDriver ? (
-                              <button
-                                onClick={() => handleOpenDriverProfile(v.currentDriver.id)}
-                                className="text-left group flex items-center space-x-1.5 cursor-pointer"
-                              >
-                                <div className="w-5 h-5 rounded-full bg-[#EBF5FF] text-[#007AFF] flex items-center justify-center text-[10px] font-bold">
-                                  {v.currentDriver.name.charAt(0)}
-                                </div>
-                                <span className="font-medium text-[#1D1D1F] group-hover:text-[#007AFF] transition-colors truncate max-w-[130px]">
-                                  {v.currentDriver.name}
-                                </span>
-                              </button>
+                            {isSuperAdmin ? (
+                              <div className="flex items-center space-x-1">
+                                <input
+                                  type="text"
+                                  list="driver-names-datalist"
+                                  key={`driver-${v.id}-${v.currentDriver?.name || 'none'}`}
+                                  defaultValue={v.currentDriver?.name || ''}
+                                  placeholder="Enter Driver Name"
+                                  onBlur={(e) => {
+                                    const newName = e.target.value.trim();
+                                    const currentName = (v.currentDriver?.name || '').trim();
+                                    if (newName !== currentName) {
+                                      handleQuickUpdateDriverName(v.id, newName);
+                                    }
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      (e.target as HTMLInputElement).blur();
+                                    }
+                                  }}
+                                  className="w-32 px-2.5 py-1 text-xs bg-[#F2F2F7] hover:bg-white focus:bg-white border border-[#E5E5EA] focus:border-[#007AFF] rounded-md text-[#1D1D1F] placeholder-[#86868B] transition-colors focus:outline-none focus:ring-1 focus:ring-[#007AFF]"
+                                  title="Type driver name and press Enter or click away to assign"
+                                />
+                                {v.currentDriver?.id && (
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenDriverProfile(v.currentDriver.id)}
+                                    className="p-1 text-[#86868B] hover:text-[#007AFF] hover:bg-[#EBF5FF] rounded-md transition-colors cursor-pointer"
+                                    title="View Driver Profile"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
                             ) : (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#FFF5E5] text-[#FF9F0A] border border-[#FFE4B8]">
-                                Unassigned
+                              <span className="text-xs text-[#1D1D1F] font-medium">
+                                {v.currentDriver?.name || '—'}
                               </span>
                             )}
                           </td>
@@ -1543,9 +1640,16 @@ export default function FleetManagementPage() {
                 <span className="text-[#007AFF] font-medium">Click <strong>Edit</strong> or double-click any row to edit all fields in-place</span>
               </div>
               <div className="text-[10px] text-[#86868B] flex items-center space-x-1">
-                <span>Actions are pinned to the right edge • Scroll horizontally to view all columns</span>
+                <span>Actions are pinned to the right edge • Use top or bottom scroller to view all columns</span>
               </div>
             </div>
+
+            {/* Driver names datalist for autocomplete in driver input boxes */}
+            <datalist id="driver-names-datalist">
+              {drivers.map((d) => (
+                <option key={d.id} value={d.name} />
+              ))}
+            </datalist>
           </div>
         </div>
       )}
