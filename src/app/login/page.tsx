@@ -47,7 +47,7 @@ export default function LoginPage() {
       <div className="max-w-[420px] w-full space-y-6">
         {/* Official Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#FFFFFF] border border-[#E5E5EA] p-2 shadow-apple-card mb-1 overflow-hidden">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-none bg-[#FFFFFF] border border-[#E5E5EA] p-2 shadow-apple-card mb-1 overflow-hidden">
             <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-[#1D1D1F]">
@@ -57,14 +57,14 @@ export default function LoginPage() {
         </div>
 
         {/* Main Sign-In Card */}
-        <div className="bg-[#FFFFFF] border border-[#E5E5EA] rounded-[24px] p-8 shadow-apple-card space-y-6">
+        <div className="bg-[#FFFFFF] border border-[#E5E5EA] rounded-none p-8 shadow-apple-card space-y-6">
           <div>
             <h2 className="text-base font-semibold text-[#1D1D1F]">Sign In</h2>
             <p className="text-xs text-[#86868B] mt-1">Enter your registered email and password to access the portal</p>
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-2xl bg-[#FFF0EF] border border-[#FFD0CE] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
+            <div className="p-3.5 rounded-none bg-[#FFF0EF] border border-[#FFD0CE] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-[#FF3B30]" />
               <span>{error}</span>
             </div>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@atharvatravels.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-[14px] text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                  className="w-full pl-10 pr-4 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-none text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
                 />
               </div>
             </div>
@@ -106,7 +106,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-[14px] text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                  className="w-full pl-10 pr-10 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-none text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
                 />
                 <button
                   type="button"
@@ -122,7 +122,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#007AFF] hover:bg-[#0062CC] text-white font-semibold rounded-full text-xs transition-all duration-150 flex items-center justify-center space-x-1.5 shadow-apple-btn active:scale-[0.99] disabled:opacity-50"
+              className="w-full py-3 bg-[#007AFF] hover:bg-[#0062CC] text-white font-semibold rounded-none text-xs transition-all duration-150 flex items-center justify-center space-x-1.5 shadow-apple-btn active:scale-[0.99] disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <span>Authenticating...</span>
