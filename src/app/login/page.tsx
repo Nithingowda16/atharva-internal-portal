@@ -2,10 +2,11 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Mail, ArrowRight, AlertCircle, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Shield, Building2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<'admin' | 'vendor'>('admin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -43,28 +44,50 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex flex-col justify-center items-center p-6 selection:bg-[#B3D7FF]">
-      <div className="max-w-[420px] w-full space-y-6">
-        {/* Official Brand Header */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-none bg-[#FFFFFF] border border-[#E5E5EA] p-2 shadow-apple-card mb-1 overflow-hidden">
-            <img src="/logo.png" alt="Atharva Travels" className="w-full h-full object-contain" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#1D1D1F]">
-            ATHARVA TRAVELS
-          </h1>
-          <p className="text-xs text-[#86868B] font-medium">Internal Finance Management Portal</p>
+    <div className="min-h-screen bg-[#F4F6F8] flex flex-col justify-center items-center p-4 sm:p-6 selection:bg-[#B3D7FF]">
+      <div className="max-w-[440px] w-full space-y-7">
+        {/* Official Atharva Travels Brand Logo */}
+        <div className="text-center">
+          <img
+            src="/atharva-logo-transparent.png"
+            alt="Atharva Travels - Let's Drive Together"
+            className="h-24 sm:h-28 w-auto object-contain mx-auto transition-transform hover:scale-105 duration-200"
+          />
         </div>
 
         {/* Main Sign-In Card */}
-        <div className="bg-[#FFFFFF] border border-[#E5E5EA] rounded-none p-8 shadow-apple-card space-y-6">
-          <div>
-            <h2 className="text-base font-semibold text-[#1D1D1F]">Sign In</h2>
-            <p className="text-xs text-[#86868B] mt-1">Enter your registered email and password to access the portal</p>
+        <div className="bg-[#FFFFFF] border border-[#EAECEF] shadow-[0_4px_24px_rgba(0,0,0,0.06)] p-8 sm:p-10 space-y-6">
+          {/* Tabs: Atharva Admin & Vendor Team */}
+          <div className="flex border-b border-[#E5E9EC]">
+            <button
+              type="button"
+              onClick={() => setActiveTab('admin')}
+              className={`flex-1 pb-3 text-center text-sm font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                activeTab === 'admin'
+                  ? 'border-b-2 border-[#007AFF] text-[#007AFF]'
+                  : 'text-[#8C9BA5] hover:text-[#1D1D1F]'
+              }`}
+            >
+              <Shield className="w-4 h-4 shrink-0 text-[#007AFF]" />
+              <span>Atharva Admin</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('vendor')}
+              className={`flex-1 pb-3 text-center text-sm font-semibold flex items-center justify-center space-x-2 transition-all cursor-pointer ${
+                activeTab === 'vendor'
+                  ? 'border-b-2 border-[#007AFF] text-[#007AFF]'
+                  : 'text-[#8C9BA5] hover:text-[#1D1D1F]'
+              }`}
+            >
+              <Building2 className="w-4 h-4 shrink-0 text-[#8C9BA5]" />
+              <span>Vendor & Team</span>
+            </button>
           </div>
 
           {error && (
-            <div className="p-3.5 rounded-none bg-[#FFF0EF] border border-[#FFD0CE] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
+            <div className="p-3 bg-[#FFF0EF] border-l-4 border-[#FF3B30] text-[#FF3B30] text-xs flex items-center space-x-2.5 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 shrink-0 text-[#FF3B30]" />
               <span>{error}</span>
             </div>
@@ -75,74 +98,83 @@ export default function LoginPage() {
               e.preventDefault();
               handleLogin();
             }}
-            className="space-y-4"
+            className="space-y-6 pt-1"
           >
+            {/* Email Field with Underline Style */}
             <div>
-              <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
-                Email Address
+              <label className="block text-[11px] font-bold text-[#8C9BA5] uppercase tracking-wider mb-2">
+                {activeTab === 'admin' ? 'AUTHORIZED ADMIN EMAIL' : 'AUTHORIZED EMAIL'}
               </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-[#86868B] absolute left-3.5 top-3.5" />
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@atharvatravels.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-none text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
-                />
-              </div>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={
+                  activeTab === 'admin'
+                    ? 'name.admin@atharvatravels.com'
+                    : 'vendor.team@atharvatravels.com'
+                }
+                className="w-full bg-transparent border-b border-[#D5DCE2] focus:border-[#007AFF] pb-2.5 pt-1 text-sm text-[#1D1D1F] outline-none placeholder-[#8C9BA5] transition-colors font-medium"
+              />
             </div>
 
+            {/* Password Field with Underline Style & Toggle Eye */}
             <div>
-              <label className="block text-xs font-semibold text-[#1D1D1F] mb-1.5">
-                Password
+              <label className="block text-[11px] font-bold text-[#8C9BA5] uppercase tracking-wider mb-2">
+                PASSWORD
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-[#86868B] absolute left-3.5 top-3.5" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 bg-[#F2F2F7] border border-[#E5E5EA] rounded-none text-xs text-[#1D1D1F] placeholder-[#86868B] focus:bg-[#FFFFFF] focus:outline-hidden focus:ring-2 focus:ring-[#007AFF] transition-all"
+                  placeholder="Password"
+                  className="w-full bg-transparent border-b border-[#D5DCE2] focus:border-[#007AFF] pb-2.5 pt-1 pr-9 text-sm text-[#1D1D1F] outline-none placeholder-[#8C9BA5] transition-colors font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-3 text-[#86868B] hover:text-[#1D1D1F] transition-colors"
+                  className="absolute right-0 bottom-2.5 text-[#8C9BA5] hover:text-[#1D1D1F] transition-colors cursor-pointer"
                   tabIndex={-1}
+                  title={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-[#007AFF] hover:bg-[#0062CC] text-white font-semibold rounded-none text-xs transition-all duration-150 flex items-center justify-center space-x-1.5 shadow-apple-btn active:scale-[0.99] disabled:opacity-50 cursor-pointer"
-            >
-              {loading ? (
-                <span>Authenticating...</span>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+            {/* Log In Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full py-3.5 font-bold text-sm transition-all duration-150 flex items-center justify-center space-x-2 rounded-none cursor-pointer ${
+                  email && password
+                    ? 'bg-[#007AFF] hover:bg-[#0062CC] text-white shadow-xs active:scale-[0.99]'
+                    : 'bg-[#EEF2F6] text-[#8C9BA5] hover:bg-[#E2E8F0]'
+                }`}
+              >
+                {loading ? <span>Authenticating...</span> : <span>Log In</span>}
+              </button>
+            </div>
 
-        {/* Footer */}
-        <div className="text-center text-[11px] text-[#86868B] space-y-1">
-          <p className="flex items-center justify-center space-x-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#34C759]" />
-            <span>Encrypted Server-Side Authentication · Database Secured</span>
-          </p>
-          <p>ATHARVA TRAVELS © 2026</p>
+            {/* Reset Password Link */}
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() =>
+                  alert(
+                    'To reset or re-issue your portal password, please reach out directly to Bhaskar (Super Admin).'
+                  )
+                }
+                className="text-[#007AFF] hover:text-[#005bb5] font-semibold text-xs tracking-wide cursor-pointer transition-colors"
+              >
+                Reset password
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
