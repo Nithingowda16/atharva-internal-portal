@@ -400,3 +400,50 @@ model TdsVersion {
 
   @@index([tdsRecordId, versionNumber])
 }
+
+
+model FuelCommissionRecord {
+  id                   String                  @id @default(cuid())
+  financialYear        String                  // e.g. "2026-27"
+  financialMonth       String                  // e.g. "Jan-26", "Feb-26", "Other"
+  commissionDate       String                  // "YYYY-MM-DD"
+  siteName             String                  // e.g. "Hari", "AMZ", "ECO", "WF", "Oracle", "6188", etc.
+  vehicleNumber        String?                 // e.g. "KA41D 6188"
+  category             String                  // "MONTHLY", "OPENING", "ADJUSTMENT"
+  amount               Float                   // Positive for earnings, negative for adjustments
+  accountingType       String                  @default("EARNED") // "EARNED", "RECEIVED", "ADJUSTMENT"
+  status               String                  @default("PENDING") // "EARNED", "RECEIVED", "PARTIALLY_RECEIVED"
+  receivedAmount       Float                   @default(0)
+  pendingAmount        Float                   @default(0)
+  description          String?
+  transactionReference String?
+  bankReference        String?                 // Link to bank deposit transaction if deposited
+  remarks              String?
+  isDeleted            Boolean                 @default(false)
+  deletedAt            DateTime?
+  createdById          String?
+  createdByEmail       String?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  versions             FuelCommissionVersion[]
+
+  @@index([financialYear, financialMonth])
+  @@index([siteName])
+  @@index([category])
+  @@index([accountingType])
+  @@index([isDeleted])
+}
+
+model FuelCommissionVersion {
+  id              String               @id @default(cuid())
+  recordId        String
+  record          FuelCommissionRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  versionNumber   Int
+  snapshotData    String               // JSON snapshot for full version revert
+  changeReason    String?
+  createdById     String?
+  createdByEmail  String?
+  createdAt       DateTime             @default(now())
+
+  @@index([recordId, versionNumber])
+}

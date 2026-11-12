@@ -14,6 +14,7 @@ import {
   Building2,
   Receipt,
   Scissors,
+  Fuel,
   CreditCard,
   FileBarChart2,
   FileSpreadsheet,
@@ -85,6 +86,7 @@ export default function Sidebar({ user: propUser }: SidebarProps) {
       items: [
         { label: 'Monthly Finance', href: '/monthly-finance', icon: Calendar, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
         { label: 'Bank & Accounts Management', href: '/bank', icon: Landmark, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'], hasSubItems: true },
+        { label: 'Fuel Commission', href: '/fuel-commission', icon: Fuel, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
         { label: 'Billing & Transactions', href: '/billing', icon: Receipt, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
         { label: 'Adjustments & Deductions', href: '/adjustments', icon: Scissors, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },
         { label: 'Payments & Settlements', href: '/payments', icon: CreditCard, roles: ['SUPER_ADMIN', 'FINANCE_MANAGER', 'OPERATIONS', 'VIEWER'] },

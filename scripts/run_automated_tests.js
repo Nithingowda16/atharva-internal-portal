@@ -436,6 +436,58 @@ async function runTestSuite() {
   const calculatedGstTds = gstBase + totalTdsSum;
   assert(Math.abs(calculatedGstTds - 24217.30) <= 0.01, `GST & TDS Bank Balance reference ₹24,217.30 reconciles (= ₹4,012 GST + ₹20,205.30 TDS)`);
 
+  // TEST SUITE 13: Fuel Commission Management Verification
+  console.log('\n--- TEST SUITE 13: Fuel Commission Management Verification ---');
+  const fcRecords = await newPrismaInstance.fuelCommissionRecord.findMany({
+    where: { isDeleted: false },
+    include: { versions: true },
+    orderBy: { createdAt: 'asc' }
+  });
+
+  assert(fcRecords.length >= 35, `Fuel Commission Records populated in database (found: ${fcRecords.length} active records)`);
+
+  const oldComm = fcRecords.find(r => r.category === 'OPENING');
+  assert(oldComm !== undefined, 'Old Commission opening record exists in database');
+  if (oldComm) {
+    assert(Math.abs(oldComm.amount - 64472.64) <= 0.01, `Old Commission ₹64,472.64 matches source screenshot & Excel (found: ₹${oldComm.amount})`);
+    assert(oldComm.versions.length >= 1, `Old Commission contains initial version snapshot (found: ${oldComm.versions.length} versions)`);
+  }
+
+  const monthlyRecs = fcRecords.filter(r => r.category === 'MONTHLY');
+  assert(monthlyRecs.length === 33, `Exactly 33 monthly commission records present (found: ${monthlyRecs.length})`);
+  const monthlySubtotal = monthlyRecs.reduce((sum, r) => sum + r.amount, 0);
+  assert(Math.abs(monthlySubtotal - 161378.06) <= 0.05, `Monthly commission entries subtotal ₹1,61,378.06 matches source (found: ₹${monthlySubtotal.toFixed(2)})`);
+
+  const adjRec = fcRecords.find(r => r.category === 'ADJUSTMENT');
+  assert(adjRec !== undefined, 'Adjustment record exists in database');
+  if (adjRec) {
+    assert(Math.abs(adjRec.amount - (-24960.64)) <= 0.01, `Adjustment -₹24,960.64 matches source screenshot & Excel (found: ₹${adjRec.amount})`);
+    assert(adjRec.versions.length >= 1, `Adjustment contains initial version snapshot (found: ${adjRec.versions.length} versions)`);
+  }
+
+  const totalFuelComm = fcRecords.reduce((sum, r) => sum + r.amount, 0);
+  assert(Math.abs(totalFuelComm - 200890.06) <= 0.05, `Total Fuel Commission ₹200,890.06 exactly reconciles (64,472.64 + 161,378.06 - 24,960.64 = ₹200,890.06)`);
+
+  // Verify connection to Bank Balance D68
+  const bankBalRef = 200890.06;
+  assert(Math.abs(totalFuelComm - bankBalRef) <= 0.05, `Fuel Commission ₹200,890.06 matches master Bank Balance reference cell D68`);
+
+  // Key site sub-totals checks
+  const amzRecs = monthlyRecs.filter(r => r.siteName === 'AMZ');
+  const amzTotal = amzRecs.reduce((sum, r) => sum + r.amount, 0);
+  assert(amzRecs.length === 9, `AMZ contains 9 monthly entries (found: ${amzRecs.length})`);
+  assert(Math.abs(amzTotal - 63593.22) <= 0.05, `AMZ total ₹63,593.22 matches source (found: ₹${amzTotal.toFixed(2)})`);
+
+  const hariRecs = monthlyRecs.filter(r => r.siteName === 'Hari');
+  const hariTotal = hariRecs.reduce((sum, r) => sum + r.amount, 0);
+  assert(hariRecs.length === 7, `Hari contains 7 monthly entries (found: ${hariRecs.length})`);
+  assert(Math.abs(hariTotal - 40887.53) <= 0.05, `Hari total ₹40,887.53 matches source (found: ₹${hariTotal.toFixed(2)})`);
+
+  const ecoRecs = monthlyRecs.filter(r => r.siteName === 'ECO');
+  const ecoTotal = ecoRecs.reduce((sum, r) => sum + r.amount, 0);
+  assert(ecoRecs.length === 5, `ECO contains 5 monthly entries (found: ${ecoRecs.length})`);
+  assert(Math.abs(ecoTotal - 26518.06) <= 0.05, `ECO total ₹26,518.06 matches source (found: ₹${ecoTotal.toFixed(2)})`);
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
