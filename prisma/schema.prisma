@@ -353,10 +353,25 @@ model BankAccountEntry {
   deletedAt       DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+  versions        BankAccountEntryVersion[]
 
   @@index([accountId])
   @@index([section])
   @@index([isDeleted])
+}
+
+model BankAccountEntryVersion {
+  id             String           @id @default(cuid())
+  entryId        String
+  entry          BankAccountEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  snapshotData   String           // JSON snapshot for full version revert
+  changeReason   String?
+  createdById    String?
+  createdByEmail String?
+  createdAt      DateTime         @default(now())
+
+  @@index([entryId, versionNumber])
 }
 
 

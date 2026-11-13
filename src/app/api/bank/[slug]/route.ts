@@ -59,6 +59,11 @@ export async function GET(
 
     const entries = await prisma.bankAccountEntry.findMany({
       where,
+      include: {
+        versions: {
+          orderBy: { versionNumber: 'desc' },
+        },
+      },
       orderBy: [{ rowIndex: 'asc' }, { createdAt: 'asc' }],
     });
 
@@ -156,6 +161,31 @@ export async function POST(
         invoiceNo: invoiceNo || null,
         comments: comments?.trim() || null,
         remarks: remarks?.trim() || null,
+        meta: body.meta
+          ? typeof body.meta === 'string'
+            ? body.meta
+            : JSON.stringify(body.meta)
+          : JSON.stringify({
+              transactionId: body.transactionId || `TXN-${Date.now()}`,
+              financialYear: body.financialYear || '2026-27',
+              financialMonth: body.financialMonth || 'Nov-26',
+              debitCredit: body.debitCredit || (Number(amount) < 0 ? 'DEBIT' : 'CREDIT'),
+              paymentStatus: body.paymentStatus || 'PAID',
+              paymentMode: body.paymentMode || 'BANK_TRANSFER',
+              bankTxnReference: body.bankTxnReference || null,
+            }),
+      },
+    });
+
+    // Create initial version snapshot
+    await prisma.bankAccountEntryVersion.create({
+      data: {
+        entryId: entry.id,
+        versionNumber: 1,
+        snapshotData: JSON.stringify(entry),
+        changeReason: body.changeReason || `Initial entry created in ${account.accountName}`,
+        createdById: user.id,
+        createdByEmail: user.email,
       },
     });
 
@@ -240,9 +270,26 @@ export async function PUT(
     if (dataToUpdate.receivedAmount !== undefined) dataToUpdate.receivedAmount = Number(dataToUpdate.receivedAmount);
     if (dataToUpdate.netAmount !== undefined) dataToUpdate.netAmount = Number(dataToUpdate.netAmount);
 
+    if (body.meta) {
+      dataToUpdate.meta = typeof body.meta === 'string' ? body.meta : JSON.stringify(body.meta);
+    }
+
     const updated = await prisma.bankAccountEntry.update({
       where: { id },
       data: dataToUpdate,
+    });
+
+    // Create version snapshot for audit & revert history
+    const vCount = await prisma.bankAccountEntryVersion.count({ where: { entryId: id } });
+    await prisma.bankAccountEntryVersion.create({
+      data: {
+        entryId: id,
+        versionNumber: vCount + 1,
+        snapshotData: JSON.stringify(existing),
+        changeReason: body.changeReason || `Updated entry ${updated.particulars} (Amount: ₹${updated.amount})`,
+        createdById: user.id,
+        createdByEmail: user.email,
+      },
     });
 
     await logAudit({

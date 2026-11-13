@@ -643,6 +643,95 @@ async function runTestSuite() {
     assert(Math.abs(variance) <= 0.001, 'Reconciliation check variance is exactly ₹0.00 (M40 - M20 = ₹0.00)');
   }
 
+  // TEST SUITE 15: DCO Management, Dynamic Entry Management & Bank Synchronization
+  console.log('\n--- TEST SUITE 15: DCO Management, Dynamic Entry Management & Bank Synchronization ---');
+
+  const dcoAcc = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'dco' },
+    include: { periods: true }
+  });
+  assert(dcoAcc !== null, 'DCO BankAccount record exists in database');
+
+  // Verify all 3 legitimate original DCO entries
+  const dcoActiveEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: { accountId: dcoAcc.id, isDeleted: false },
+    include: { versions: true },
+    orderBy: { rowIndex: 'asc' }
+  });
+
+  assert(dcoActiveEntries.length === 3, `Exactly 3 legitimate active DCO booking entries exist (found: ${dcoActiveEntries.length})`);
+
+  // Verify amounts and transaction IDs
+  const all5000 = dcoActiveEntries.every(e => Math.abs(e.amount - (-5000)) <= 0.01);
+  assert(all5000, 'All 3 DCO entries have exact amount -₹5,000.00 each');
+
+  const dcoSum = dcoActiveEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(dcoSum - (-15000)) <= 0.01, `Total DCO sum is exactly -₹15,000.00 (-5000 - 5000 - 5000) (found: ₹${dcoSum.toFixed(2)})`);
+
+  // Verify unique transaction IDs
+  const hasTxn1 = dcoActiveEntries.some(e => e.meta && e.meta.includes('DCO-202611-001'));
+  const hasTxn2 = dcoActiveEntries.some(e => e.meta && e.meta.includes('DCO-202611-002'));
+  const hasTxn3 = dcoActiveEntries.some(e => e.meta && e.meta.includes('DCO-202611-003'));
+  assert(hasTxn1 && hasTxn2 && hasTxn3, 'All 3 DCO records have distinct unique transaction IDs (DCO-202611-001, 002, 003)');
+
+  // Verify version snapshots exist for all entries
+  const allHaveVersions = dcoActiveEntries.every(e => e.versions && e.versions.length >= 1);
+  assert(allHaveVersions, 'All 3 DCO entries contain version history snapshots for audit and revert');
+
+  // Verify obsolete 0-amount record is soft-deleted
+  const obsoleteDco = await newPrismaInstance.bankAccountEntry.findUnique({
+    where: { id: 'cmw7ibkzw002693fy0lzo6kf3' }
+  });
+  assert(obsoleteDco !== null && obsoleteDco.isDeleted === true, 'Obsolete 0-amount entry cmw7ibkzw002693fy0lzo6kf3 is safely soft-deleted');
+
+  // Verify connection to Main Bank Balance Row 11
+  const mainBalanceDcoEntry = await newPrismaInstance.bankAccountEntry.findFirst({
+    where: {
+      account: { accountSlug: 'bank-balance' },
+      rowIndex: 11,
+      isDeleted: false,
+    }
+  });
+  assert(mainBalanceDcoEntry !== null, 'Main Bank Balance contains Row 11 DCO reference entry');
+  if (mainBalanceDcoEntry) {
+    assert(Math.abs(mainBalanceDcoEntry.amount - (-15000)) <= 0.01, `Row 11 references DCO!C1 amount -₹15,000.00 (found: ₹${mainBalanceDcoEntry.amount})`);
+    assert(mainBalanceDcoEntry.formulaString === 'DCO!C1', 'Row 11 formula is DCO!C1');
+  }
+
+  // Dynamic DCO calculation test: Add future entry of -₹2,000 and verify recalculation
+  const testFutureEntry = await newPrismaInstance.bankAccountEntry.create({
+    data: {
+      accountId: dcoAcc.id,
+      periodCode: '2026-DEC',
+      entryDate: '2026-12-05',
+      section: 'BOOKING',
+      category: 'Booking amount',
+      particulars: 'December Test Booking',
+      amount: -2000,
+      rawAmount: '-2000',
+      paidAmount: 2000,
+      netAmount: -2000,
+      meta: JSON.stringify({ transactionId: 'DCO-TEST-DEC', financialMonth: 'Dec-26' }),
+      isDeleted: false,
+    }
+  });
+
+  const updatedEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: { accountId: dcoAcc.id, isDeleted: false }
+  });
+  const newDcoTotal = updatedEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(newDcoTotal - (-17000)) <= 0.01, `Dynamic recalculation: adding -₹2,000 entry updates DCO total to -₹17,000.00 (found: ₹${newDcoTotal.toFixed(2)})`);
+
+  // Clean up test entry
+  await newPrismaInstance.bankAccountEntry.delete({
+    where: { id: testFutureEntry.id }
+  });
+  const restoredEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: { accountId: dcoAcc.id, isDeleted: false }
+  });
+  const restoredTotal = restoredEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(restoredTotal - (-15000)) <= 0.01, `After test purge, DCO total accurately restored to baseline -₹15,000.00 (found: ₹${restoredTotal.toFixed(2)})`);
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
