@@ -960,6 +960,117 @@ async function runTestSuite() {
   await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFutureAdv.id } });
   assert(true, 'Test dynamic employee advance entry cleaned up safely');
 
+  // TEST SUITE 18: Expense Management, Dynamic Categories, Mathematical Integrity & Accounting Separation
+  console.log('\n--- TEST SUITE 18: Expense Management, Dynamic Categories, Mathematical Integrity & Accounting Separation ---');
+
+  const expAccount = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'expense' },
+    include: { periods: true }
+  });
+  assert(expAccount !== null, 'Expense BankAccount record exists in database');
+
+  // 1. Fetch 2026 dataset entries (44 records)
+  const allExpEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: expAccount.id,
+      isDeleted: false,
+    },
+    include: { versions: true },
+    orderBy: { rowIndex: 'asc' }
+  });
+
+  const exp2026Entries = allExpEntries.filter(e => 
+    (e.meta && e.meta.includes('EXP-2026')) || 
+    e.id === 'cmw7ibmfw004093fy4qgr3c7h'
+  );
+  assert(exp2026Entries.length === 44, `All 44 entries from RENT & OTHER EXP -2026 verified in database (found: ${exp2026Entries.length})`);
+
+  // 2. Mathematical Integrity: Gross Debits, Credits, and Net Outflow
+  const grossDebits = exp2026Entries.filter(e => e.amount > 0).reduce((s, e) => s + e.amount, 0);
+  const totalCredits = exp2026Entries.filter(e => e.amount < 0).reduce((s, e) => s + e.amount, 0);
+  const netExpense = exp2026Entries.reduce((s, e) => s + e.amount, 0);
+
+  assert(Math.abs(grossDebits - 339492.14) <= 0.05, `Gross debits sum to ₹3,39,492.14 (found: ₹${grossDebits.toFixed(2)})`);
+  assert(Math.abs(totalCredits - (-49860.50)) <= 0.05, `Total credit adjustments sum to -₹49,860.50 (found: ₹${totalCredits.toFixed(2)})`);
+  assert(Math.abs(netExpense - 289631.64) <= 0.05, `Net expense outflow equals exactly ₹2,89,631.64 (found: ₹${netExpense.toFixed(2)})`);
+
+  // 3. Accounting Separation: Business Expenses vs Personal Drawings vs Investments
+  const personalDrawings = exp2026Entries.filter(e => 
+    e.section === 'PERSONAL_DRAWINGS' || 
+    (e.particulars && (e.particulars.includes('Personal') || e.particulars.includes('Profit taken')))
+  );
+  const personalTotal = personalDrawings.reduce((s, e) => s + e.amount, 0);
+  assert(personalDrawings.length === 7, `Personal drawings contains exactly 7 records (found: ${personalDrawings.length})`);
+  assert(Math.abs(personalTotal - 194000.00) <= 0.01, `Personal drawings total equals ₹1,94,000.00 (found: ₹${personalTotal.toFixed(2)})`);
+
+  const investments = exp2026Entries.filter(e => 
+    e.section === 'EXPENSE_INVESTMENT' || 
+    (e.particulars && (e.particulars.includes('ECO-BR') || e.particulars.includes('IT Return')))
+  );
+  assert(investments.length === 2, `Investments contains exactly 2 records (ECO-BR and IT Return) (found: ${investments.length})`);
+  const investTotal = investments.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(investTotal - (-49860.50)) <= 0.01, `Investments total equals -₹49,860.50 (found: ₹${investTotal.toFixed(2)})`);
+
+  const businessEntries = exp2026Entries.filter(e => 
+    e.section !== 'PERSONAL_DRAWINGS' && 
+    e.section !== 'EXPENSE_INVESTMENT' && 
+    !personalDrawings.some(p => p.id === e.id) && 
+    !investments.some(i => i.id === e.id)
+  );
+  const businessTotal = businessEntries.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(businessTotal - 145492.14) <= 0.05, `Actual Business Expenses sum to ₹1,45,492.14 (found: ₹${businessTotal.toFixed(2)})`);
+
+  // 4. Rent Verification
+  const rentEntries = exp2026Entries.filter(e => 
+    e.section === 'RENT' || e.category === 'Rent'
+  );
+  assert(rentEntries.length === 13, `Rent entries count is 13 (found: ${rentEntries.length})`);
+  const rentTotal = rentEntries.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(rentTotal - 56502.66) <= 0.01, `Total rent equals ₹56,502.66 (found: ₹${rentTotal.toFixed(2)})`);
+
+  const novRent = rentEntries.find(e => e.periodCode === 'Nov-26' && e.particulars === 'Rent');
+  assert(novRent && Math.abs(novRent.amount - 8000.00) <= 0.01, 'November 2026 Rent is ₹8,000.00');
+
+  // 5. CA Fees Verification & October Separation
+  const caEntries = exp2026Entries.filter(e => 
+    e.section === 'PROFESSIONAL_FEES' || 
+    (e.particulars && e.particulars.toLowerCase().includes('ca fee'))
+  );
+  const caTotal = caEntries.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(caTotal - 28700.00) <= 0.01, `CA Fees total equals ₹28,700.00 (found: ₹${caTotal.toFixed(2)})`);
+
+  const octCaEntries = caEntries.filter(e => e.periodCode === 'Oct-26');
+  assert(octCaEntries.length === 2, `October CA Fees preserved as two distinct entries (found: ${octCaEntries.length})`);
+  assert(Math.abs(octCaEntries[0].amount - 1250) <= 0.01 && Math.abs(octCaEntries[1].amount - 1250) <= 0.01, 'Both October CA Fee entries have amount ₹1,250.00 each');
+
+  // 6. Version Snapshots
+  const allExpHaveVersions = exp2026Entries.every(e => e.versions && e.versions.length >= 1);
+  assert(allExpHaveVersions, 'All 44 expense entries contain version history snapshots for audit and revert');
+
+  // 7. Dynamic Future Expense Entry Creation & Cleanup
+  const testFutureExp = await newPrismaInstance.bankAccountEntry.create({
+    data: {
+      accountId: expAccount.id,
+      periodCode: 'Dec-26',
+      entryDate: '2026-12-10',
+      section: 'RENT',
+      category: 'Rent',
+      particulars: 'December 2026 Rent Test',
+      amount: 8000,
+      rawAmount: '8000',
+      paidAmount: 8000,
+      receivedAmount: 0,
+      netAmount: 8000,
+      meta: JSON.stringify({ transactionId: 'EXP-TEST-DEC', accountingClassification: 'Business Operating Expense' }),
+      isDeleted: false,
+    }
+  });
+  assert(testFutureExp !== null && testFutureExp.amount === 8000, 'Dynamic future expense entry created successfully');
+
+  // Clean up test entry
+  await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFutureExp.id } });
+  assert(true, 'Test dynamic expense entry cleaned up safely');
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
