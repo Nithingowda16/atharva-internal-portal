@@ -3,22 +3,35 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  Filter,
   Plus,
   Edit2,
   Trash2,
   Calendar,
   FileSpreadsheet,
-  CheckCircle2,
-  AlertCircle,
+  Download,
+  Upload,
+  History,
+  AlertTriangle,
   X,
   RefreshCw,
-  ArrowUpRight,
-  ArrowDownRight,
-  Save,
   Tag,
+  ArrowRight,
+  RotateCcw,
+  ShieldCheck,
+  Check,
 } from 'lucide-react';
 import CategoryManagerModal from '@/components/accounting/CategoryManagerModal';
+import SmartExcelImportModal from '@/components/accounting/SmartExcelImportModal';
+
+export interface SheetEntryVersion {
+  id: string;
+  versionNumber: number;
+  snapshotData: string;
+  changeReason?: string;
+  createdById?: string;
+  createdByEmail?: string;
+  createdAt: string;
+}
 
 export interface SheetEntry {
   id: string;
@@ -40,6 +53,8 @@ export interface SheetEntry {
   comments?: string;
   remarks?: string;
   rowIndex?: number;
+  meta?: string;
+  versions?: SheetEntryVersion[];
 }
 
 interface AccountSheetViewProps {
@@ -87,14 +102,22 @@ export default function AccountSheetView({
   const [periods, setPeriods] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [selectedSection, setSelectedSection] = useState('ALL');
+  const [selectedPeriod, setSelectedPeriod] = useState('ALL');
   const [userRole, setUserRole] = useState<'SUPER_ADMIN' | 'VIEWER'>('SUPER_ADMIN');
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
 
   // Modals state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<SheetEntry | null>(null);
+  const [editChangeReason, setEditChangeReason] = useState('');
+  const [deletingEntry, setDeletingEntry] = useState<SheetEntry | null>(null);
   const [isPeriodModalOpen, setIsPeriodModalOpen] = useState(false);
+
+  // Version history drawer
+  const [historyEntry, setHistoryEntry] = useState<SheetEntry | null>(null);
+  const [isReverting, setIsReverting] = useState(false);
 
   // Form states
   const [formData, setFormData] = useState<any>({
@@ -168,11 +191,13 @@ export default function AccountSheetView({
 
   const isSuperAdmin = userRole === 'SUPER_ADMIN';
 
-  // Available unique sections
+  // Available unique sections & periods
   const sections = Array.from(new Set(entries.map((e) => e.section).filter(Boolean)));
+  const periodCodes = Array.from(new Set(entries.map((e) => e.periodCode).filter(Boolean)));
 
   const filteredEntries = entries.filter((e) => {
     if (selectedSection !== 'ALL' && e.section !== selectedSection) return false;
+    if (selectedPeriod !== 'ALL' && e.periodCode !== selectedPeriod) return false;
     if (!search) return true;
     const q = search.toLowerCase();
     return (
@@ -183,6 +208,54 @@ export default function AccountSheetView({
       e.periodCode?.toLowerCase().includes(q)
     );
   });
+
+  // Export CSV with UTF-8 BOM
+  const handleExportCSV = () => {
+    if (entries.length === 0) {
+      alert('No records available to export.');
+      return;
+    }
+
+    const headers = [
+      'ID',
+      'Period',
+      'Date',
+      'Section',
+      'Category',
+      'Particulars',
+      'Amount',
+      'Paid Amount',
+      'Received Amount',
+      'Net Amount',
+      'Formula / Source',
+      'Comments',
+    ];
+
+    const rows = filteredEntries.map((e) => [
+      `"${e.id}"`,
+      `"${e.periodCode || ''}"`,
+      `"${e.entryDate || ''}"`,
+      `"${e.section || ''}"`,
+      `"${e.category || ''}"`,
+      `"${(e.particulars || '').replace(/"/g, '""')}"`,
+      e.amount || 0,
+      e.paidAmount || 0,
+      e.receivedAmount || 0,
+      e.netAmount || 0,
+      `"${(e.formulaString || e.sourceReference || '').replace(/"/g, '""')}"`,
+      `"${(e.comments || '').replace(/"/g, '""')}"`,
+    ]);
+
+    const csvContent = '\uFEFF' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${slug}_records_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // Handle Create Entry
   const handleCreateEntry = async (e: React.FormEvent) => {
@@ -212,8 +285,13 @@ export default function AccountSheetView({
           invoiceDate: '',
           invoiceNo: '',
           comments: '',
+          paymentStatus: 'PAID',
+          bankTxnReference: '',
         });
         fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to create entry');
       }
     } catch (err) {
       console.error(err);
@@ -224,15 +302,28 @@ export default function AccountSheetView({
   const handleUpdateEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isSuperAdmin || !editingEntry) return;
+
+    if (!editChangeReason.trim()) {
+      alert('Please specify a reason for this financial modification for audit history.');
+      return;
+    }
+
     try {
       const res = await fetch(`/api/bank/${slug}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingEntry),
+        body: JSON.stringify({
+          ...editingEntry,
+          changeReason: editChangeReason.trim(),
+        }),
       });
       if (res.ok) {
         setEditingEntry(null);
+        setEditChangeReason('');
         fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to update entry');
       }
     } catch (err) {
       console.error(err);
@@ -240,16 +331,48 @@ export default function AccountSheetView({
   };
 
   // Handle Delete Entry
-  const handleDeleteEntry = async (id: string) => {
-    if (!isSuperAdmin) return;
-    if (!confirm('Are you sure you want to delete this financial entry? It will be moved to the Recycle Bin.')) return;
+  const handleConfirmDelete = async () => {
+    if (!isSuperAdmin || !deletingEntry) return;
     try {
-      const res = await fetch(`/api/bank/${slug}?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/bank/${slug}?id=${deletingEntry.id}`, { method: 'DELETE' });
       if (res.ok) {
+        setDeletingEntry(null);
         fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Failed to delete entry');
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  // Handle 1-Click Rollback
+  const handleRevertVersion = async (entryId: string, versionNumber: number) => {
+    if (!isSuperAdmin) return;
+    if (!confirm(`Are you sure you want to revert this entry back to Version ${versionNumber}?`)) return;
+
+    try {
+      setIsReverting(true);
+      const res = await fetch(`/api/bank/${slug}/${entryId}/revert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ versionNumber }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert(`Successfully reverted to Version ${versionNumber}!`);
+        setHistoryEntry(null);
+        fetchData();
+      } else {
+        alert(data.error || 'Failed to revert version.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Network error while reverting version.');
+    } finally {
+      setIsReverting(false);
     }
   };
 
@@ -265,6 +388,13 @@ export default function AccountSheetView({
       });
       if (res.ok) {
         setIsPeriodModalOpen(false);
+        setPeriodFormData({
+          periodCode: '',
+          periodLabel: '',
+          openingBalance: '0',
+          carryForward: true,
+          remarks: '',
+        });
         fetchData();
       }
     } catch (err) {
@@ -315,9 +445,25 @@ export default function AccountSheetView({
               placeholder={`Search ${sheetTitle}...`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-8 pr-3 py-1.5 text-xs bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl focus:outline-hidden focus:border-[#007AFF] w-48 sm:w-64"
+              className="pl-8 pr-3 py-1.5 text-xs bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl focus:outline-hidden focus:border-[#007AFF] w-44 sm:w-56"
             />
           </div>
+
+          {/* Period Filter */}
+          {periodCodes.length > 0 && (
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="px-3 py-1.5 text-xs bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl text-[#1D1D1F] focus:outline-hidden focus:border-[#007AFF]"
+            >
+              <option value="ALL">All Periods ({entries.length})</option>
+              {periodCodes.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          )}
 
           {/* Section Filter */}
           {sections.length > 0 && (
@@ -326,7 +472,7 @@ export default function AccountSheetView({
               onChange={(e) => setSelectedSection(e.target.value)}
               className="px-3 py-1.5 text-xs bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl text-[#1D1D1F] focus:outline-hidden focus:border-[#007AFF]"
             >
-              <option value="ALL">All Sections ({entries.length})</option>
+              <option value="ALL">All Sections</option>
               {sections.map((s) => (
                 <option key={s} value={s}>
                   {s?.replace(/_/g, ' ')}
@@ -338,15 +484,33 @@ export default function AccountSheetView({
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#48484A] bg-[#F2F2F7] hover:bg-[#E5E5EA] rounded-xl transition-colors"
+            title="Export Records to CSV"
+          >
+            <Download className="w-3.5 h-3.5 mr-1" /> Export CSV
+          </button>
+
           {isSuperAdmin && (
             <>
               <button
                 type="button"
-                onClick={() => setIsCatModalOpen(true)}
+                onClick={() => setIsImportModalOpen(true)}
                 className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#007AFF] bg-[#007AFF]/10 hover:bg-[#007AFF]/20 rounded-xl transition-colors"
+                title="Intelligent Excel Import & Duplicate Prevention"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1 text-[#007AFF]" /> Import Excel
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsCatModalOpen(true)}
+                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-[#48484A] bg-[#F2F2F7] hover:bg-[#E5E5EA] rounded-xl transition-colors"
                 title="Manage Dynamic Accounting Categories"
               >
-                <Tag className="w-3.5 h-3.5 mr-1 text-[#007AFF]" /> Categories
+                <Tag className="w-3.5 h-3.5 mr-1" /> Categories
               </button>
 
               <button
@@ -384,11 +548,20 @@ export default function AccountSheetView({
                 {columns.showReceived && <th className="py-2.5 px-4 text-right">Received (₹)</th>}
                 {columns.showNet && <th className="py-2.5 px-4 text-right">Net (₹)</th>}
                 {columns.showFormula && <th className="py-2.5 px-4">Formula / Source</th>}
-                {isSuperAdmin && <th className="py-2.5 px-4 text-center">Actions</th>}
+                <th className="py-2.5 px-4 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E5E5EA]">
-              {filteredEntries.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={10} className="py-12 text-center text-[#86868B]">
+                    <div className="flex items-center justify-center space-x-2">
+                      <RefreshCw className="w-4 h-4 animate-spin text-[#007AFF]" />
+                      <span>Loading financial records...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredEntries.length === 0 ? (
                 <tr>
                   <td colSpan={10} className="py-8 text-center text-[#86868B] text-xs">
                     No entries match your search criteria.
@@ -429,21 +602,37 @@ export default function AccountSheetView({
                         </span>
                       </td>
                     )}
-                    <td className={`py-2.5 px-4 text-right font-bold tabular-nums whitespace-nowrap ${row.amount < 0 ? 'text-[#FF3B30]' : 'text-[#1D1D1F]'}`}>
-                      {row.amount !== undefined ? row.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : '-'}
+                    <td
+                      className={`py-2.5 px-4 text-right font-bold tabular-nums whitespace-nowrap ${
+                        row.amount < 0 ? 'text-[#FF3B30]' : 'text-[#1D1D1F]'
+                      }`}
+                    >
+                      {row.amount !== undefined
+                        ? row.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })
+                        : '-'}
                     </td>
                     {columns.showPaid && (
                       <td className="py-2.5 px-4 text-right text-[#FF3B30] tabular-nums whitespace-nowrap">
-                        {row.paidAmount ? `₹${row.paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                        {row.paidAmount
+                          ? `₹${row.paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                          : '-'}
                       </td>
                     )}
                     {columns.showReceived && (
                       <td className="py-2.5 px-4 text-right text-[#34C759] tabular-nums whitespace-nowrap">
-                        {row.receivedAmount ? `₹${row.receivedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '-'}
+                        {row.receivedAmount
+                          ? `₹${row.receivedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                          : '-'}
                       </td>
                     )}
                     {columns.showNet && (
-                      <td className={`py-2.5 px-4 text-right font-bold tabular-nums whitespace-nowrap ${row.netAmount !== null && row.netAmount !== undefined && row.netAmount < 0 ? 'text-[#FF3B30]' : 'text-[#34C759]'}`}>
+                      <td
+                        className={`py-2.5 px-4 text-right font-bold tabular-nums whitespace-nowrap ${
+                          row.netAmount !== null && row.netAmount !== undefined && row.netAmount < 0
+                            ? 'text-[#FF3B30]'
+                            : 'text-[#34C759]'
+                        }`}
+                      >
                         {row.netAmount !== null && row.netAmount !== undefined
                           ? `₹${row.netAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                           : '-'}
@@ -460,28 +649,42 @@ export default function AccountSheetView({
                         )}
                       </td>
                     )}
-                    {isSuperAdmin && (
-                      <td className="py-2.5 px-4 text-center whitespace-nowrap">
-                        <div className="flex items-center justify-center space-x-1.5">
-                          <button
-                            type="button"
-                            onClick={() => setEditingEntry(row)}
-                            className="p-1 rounded-md text-[#86868B] hover:text-[#007AFF] hover:bg-[#007AFF]/10 transition-colors"
-                            title="Edit entry"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteEntry(row.id)}
-                            className="p-1 rounded-md text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
-                            title="Delete entry"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    )}
+                    <td className="py-2.5 px-4 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center space-x-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setHistoryEntry(row)}
+                          className="p-1 rounded-md text-[#86868B] hover:text-[#007AFF] hover:bg-[#007AFF]/10 transition-colors"
+                          title="Version History & Audit Log"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                        </button>
+
+                        {isSuperAdmin && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingEntry(row);
+                                setEditChangeReason('');
+                              }}
+                              className="p-1 rounded-md text-[#86868B] hover:text-[#007AFF] hover:bg-[#007AFF]/10 transition-colors"
+                              title="Edit Entry"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingEntry(row)}
+                              className="p-1 rounded-md text-[#86868B] hover:text-[#FF3B30] hover:bg-[#FF3B30]/10 transition-colors"
+                              title="Void / Soft Delete Entry"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))
               )}
@@ -508,13 +711,13 @@ export default function AccountSheetView({
             <form onSubmit={handleCreateEntry} className="p-5 space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-medium text-[#1D1D1F] block mb-1">Period Code</label>
+                  <label className="font-medium text-[#1D1D1F] block mb-1">Period Code / Year</label>
                   <input
                     type="text"
                     value={formData.periodCode}
                     onChange={(e) => setFormData({ ...formData, periodCode: e.target.value })}
                     className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
-                    placeholder="e.g. 2026-MAY"
+                    placeholder="e.g. 2026, 2027, Nov-26"
                     required
                   />
                 </div>
@@ -550,7 +753,7 @@ export default function AccountSheetView({
                     value={formData.section}
                     onChange={(e) => setFormData({ ...formData, section: e.target.value })}
                     className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
-                    placeholder="PAYMENT, EXPENSE, etc."
+                    placeholder="PAYMENTS, EXPENSES, etc."
                   />
                 </div>
                 <div>
@@ -561,7 +764,7 @@ export default function AccountSheetView({
                     value={formData.amount}
                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                     className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
-                    placeholder="0.00"
+                    placeholder="0.00 (negative for debit/outflow)"
                     required
                   />
                 </div>
@@ -687,12 +890,15 @@ export default function AccountSheetView({
         </div>
       )}
 
-      {/* Edit Entry Modal */}
+      {/* Edit Entry Modal with Financial Impact Preview */}
       {editingEntry && isSuperAdmin && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
           <div className="bg-[#FFFFFF] w-full max-w-lg rounded-2xl shadow-xl border border-[#E5E5EA] overflow-hidden">
             <div className="p-4 border-b border-[#E5E5EA] flex items-center justify-between bg-[#FBFBFC]">
-              <h3 className="font-bold text-sm text-[#1D1D1F]">Edit Financial Entry</h3>
+              <div>
+                <h3 className="font-bold text-sm text-[#1D1D1F]">Edit Financial Entry</h3>
+                <p className="text-[11px] text-[#86868B]">ID: {editingEntry.id}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setEditingEntry(null)}
@@ -741,7 +947,7 @@ export default function AccountSheetView({
                     step="any"
                     value={editingEntry.amount}
                     onChange={(e) => setEditingEntry({ ...editingEntry, amount: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
+                    className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs font-bold"
                     required
                   />
                 </div>
@@ -769,6 +975,21 @@ export default function AccountSheetView({
                 />
               </div>
 
+              {/* Mandatory Change Reason for Audit History */}
+              <div className="p-3 bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl space-y-1.5">
+                <label className="font-semibold text-[#1D1D1F] flex items-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#007AFF] mr-1" /> Reason for Modification (Required)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Corrected invoice total based on vendor receipt"
+                  value={editChangeReason}
+                  onChange={(e) => setEditChangeReason(e.target.value)}
+                  className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-lg text-xs bg-white"
+                  required
+                />
+              </div>
+
               <div className="pt-3 flex items-center justify-end space-x-2 border-t border-[#E5E5EA]">
                 <button
                   type="button"
@@ -781,10 +1002,142 @@ export default function AccountSheetView({
                   type="submit"
                   className="px-4 py-1.5 text-xs font-semibold text-white bg-[#007AFF] hover:bg-[#007AFF]/90 rounded-xl shadow-2xs"
                 >
-                  Update Entry
+                  Save Changes
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete / Void Confirmation Modal */}
+      {deletingEntry && isSuperAdmin && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
+          <div className="bg-[#FFFFFF] w-full max-w-md rounded-2xl shadow-xl border border-[#E5E5EA] overflow-hidden">
+            <div className="p-4 border-b border-[#E5E5EA] flex items-center justify-between bg-[#FF3B30]/5">
+              <div className="flex items-center space-x-2">
+                <AlertTriangle className="w-4 h-4 text-[#FF3B30]" />
+                <h3 className="font-bold text-sm text-[#FF3B30]">Void / Delete Financial Entry</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingEntry(null)}
+                className="text-[#86868B] hover:text-[#1D1D1F] p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 text-xs">
+              <p className="text-[#1D1D1F] leading-relaxed">
+                Are you sure you want to void this financial entry?
+              </p>
+              <div className="p-3 bg-[#F9F9FB] border border-[#E5E5EA] rounded-xl space-y-1">
+                <div className="font-bold text-[#1D1D1F]">{deletingEntry.particulars}</div>
+                <div className="text-[#86868B]">Period: {deletingEntry.periodCode} | Section: {deletingEntry.section}</div>
+                <div className="text-sm font-bold text-[#FF3B30]">
+                  Amount: ₹{deletingEntry.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                </div>
+              </div>
+              <p className="text-[11px] text-[#86868B]">
+                This entry will be safely soft-deleted and moved to the Recycle Bin. Any deducted or credited bank cash will be automatically reversed in the Central Bank Ledger.
+              </p>
+            </div>
+
+            <div className="p-4 bg-[#FBFBFC] border-t border-[#E5E5EA] flex items-center justify-end space-x-2">
+              <button
+                type="button"
+                onClick={() => setDeletingEntry(null)}
+                className="px-3.5 py-1.5 text-xs text-[#86868B] hover:text-[#1D1D1F] font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-4 py-1.5 text-xs font-semibold text-white bg-[#FF3B30] hover:bg-[#FF3B30]/90 rounded-xl shadow-2xs"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Version History Drawer */}
+      {historyEntry && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/40 backdrop-blur-xs">
+          <div className="bg-[#FFFFFF] w-full max-w-md h-full shadow-2xl border-l border-[#E5E5EA] flex flex-col">
+            <div className="p-5 border-b border-[#E5E5EA] flex items-center justify-between bg-[#FBFBFC]">
+              <div>
+                <h3 className="font-bold text-sm text-[#1D1D1F]">Version History & Audit Log</h3>
+                <p className="text-[11px] text-[#86868B] truncate max-w-xs">{historyEntry.particulars}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setHistoryEntry(null)}
+                className="text-[#86868B] hover:text-[#1D1D1F] p-1.5 rounded-xl hover:bg-[#F2F2F7]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {(!historyEntry.versions || historyEntry.versions.length === 0) ? (
+                <div className="text-center py-12 text-[#86868B] text-xs">
+                  No previous versions recorded for this entry.
+                </div>
+              ) : (
+                historyEntry.versions.map((ver) => {
+                  let snap: any = {};
+                  try {
+                    snap = JSON.parse(ver.snapshotData);
+                  } catch (e) {}
+
+                  return (
+                    <div
+                      key={ver.id}
+                      className="p-4 rounded-2xl border border-[#E5E5EA] bg-[#F9F9FB] space-y-2 text-xs"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#007AFF]/10 text-[#007AFF]">
+                          Version {ver.versionNumber}
+                        </span>
+                        <span className="text-[10px] text-[#86868B]">
+                          {new Date(ver.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <div className="text-[11px] text-[#1D1D1F] font-medium">
+                        {ver.changeReason || 'Snapshot recorded'}
+                      </div>
+
+                      <div className="text-[10px] text-[#86868B]">
+                        By: <span className="text-[#1D1D1F] font-semibold">{ver.createdByEmail || 'System'}</span>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#E5E5EA] text-[11px] space-y-1">
+                        <div>Amount: <strong className="text-[#1D1D1F]">₹{Number(snap.amount || 0).toLocaleString('en-IN')}</strong></div>
+                        <div>Category: {snap.category || '-'}</div>
+                      </div>
+
+                      {isSuperAdmin && (
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => handleRevertVersion(historyEntry.id, ver.versionNumber)}
+                            disabled={isReverting}
+                            className="inline-flex items-center px-2.5 py-1 text-[11px] font-semibold text-[#007AFF] hover:bg-[#007AFF]/10 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" /> Revert to V{ver.versionNumber}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -809,7 +1162,7 @@ export default function AccountSheetView({
                 <label className="font-medium text-[#1D1D1F] block mb-1">Period Code</label>
                 <input
                   type="text"
-                  placeholder="e.g. 2026-Q3, 2026-NOV"
+                  placeholder="e.g. 2026-Q3, 2027, 2028-JAN"
                   value={periodFormData.periodCode}
                   onChange={(e) => setPeriodFormData({ ...periodFormData, periodCode: e.target.value })}
                   className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
@@ -821,7 +1174,7 @@ export default function AccountSheetView({
                 <label className="font-medium text-[#1D1D1F] block mb-1">Period Label</label>
                 <input
                   type="text"
-                  placeholder="e.g. November 2026 Accounting"
+                  placeholder="e.g. Fiscal Year 2027"
                   value={periodFormData.periodLabel}
                   onChange={(e) => setPeriodFormData({ ...periodFormData, periodLabel: e.target.value })}
                   className="w-full px-3 py-1.5 border border-[#E5E5EA] rounded-xl text-xs"
@@ -865,6 +1218,16 @@ export default function AccountSheetView({
         </div>
       )}
 
+      {/* Intelligent Excel Import Modal */}
+      <SmartExcelImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        accountSlug={slug}
+        accountName={sheetTitle}
+        existingEntries={entries}
+        onImportSuccess={fetchData}
+      />
+
       {/* Category Manager Modal */}
       <CategoryManagerModal
         isOpen={isCatModalOpen}
@@ -875,4 +1238,3 @@ export default function AccountSheetView({
     </div>
   );
 }
-
