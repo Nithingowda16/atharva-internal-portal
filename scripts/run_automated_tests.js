@@ -732,6 +732,123 @@ async function runTestSuite() {
   const restoredTotal = restoredEntries.reduce((sum, e) => sum + e.amount, 0);
   assert(Math.abs(restoredTotal - (-15000)) <= 0.01, `After test purge, DCO total accurately restored to baseline -₹15,000.00 (found: ₹${restoredTotal.toFixed(2)})`);
 
+  // TEST SUITE 16: Profit Sharing Management, Mathematical Engine & Cash With Hemaraj
+  console.log('\n--- TEST SUITE 16: Profit Sharing Management, Mathematical Engine & Cash With Hemaraj ---');
+
+  const psAccount = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'profit-sharing' },
+    include: { periods: true }
+  });
+  assert(psAccount !== null, 'Profit Sharing BankAccount record exists in database');
+
+  // 1. July 2026 Profit Sharing Verification
+  const julPeriod = psAccount.periods.find(p => p.periodCode === 'Jul-26');
+  assert(julPeriod !== undefined, 'July 2026 (Jul-26) period exists');
+  if (julPeriod) {
+    assert(Math.abs(julPeriod.totalIncome - 75740.34) <= 0.05, `July 2026 Gross Profit is ₹75,740.34 (found: ₹${julPeriod.totalIncome.toFixed(2)})`);
+    assert(Math.abs(julPeriod.totalExpense - 3750.00) <= 0.05, `July 2026 Less Adjustment (Black Rock) is -₹3,750.00 (found: ₹${julPeriod.totalExpense.toFixed(2)})`);
+    assert(Math.abs(julPeriod.netBalance - 71990.34) <= 0.05, `July 2026 Net Distributable Profit is ₹71,990.34 (found: ₹${julPeriod.netBalance.toFixed(2)})`);
+    assert(Math.abs(julPeriod.closingBalance - 23996.78) <= 0.05, `July 2026 Individual Share (÷3) is ₹23,996.78 (found: ₹${julPeriod.closingBalance.toFixed(2)})`);
+  }
+
+  // 2. August 2026 Profit Sharing Verification
+  const augPeriodPs = psAccount.periods.find(p => p.periodCode === 'Aug-26');
+  assert(augPeriodPs !== undefined, 'August 2026 (Aug-26) period exists');
+  if (augPeriodPs) {
+    assert(Math.abs(augPeriodPs.totalIncome - 103718.20) <= 0.05, `August 2026 Total Profit is ₹1,03,718.20 (found: ₹${augPeriodPs.totalIncome.toFixed(2)})`);
+    assert(Math.abs(augPeriodPs.netBalance - 103718.20) <= 0.05, `August 2026 Net Profit is ₹1,03,718.20 (found: ₹${augPeriodPs.netBalance.toFixed(2)})`);
+    assert(Math.abs(augPeriodPs.closingBalance - 34572.73) <= 0.05, `August 2026 Individual Share (÷3) is ₹34,572.73 (found: ₹${augPeriodPs.closingBalance.toFixed(2)})`);
+  }
+
+  // 3. September 2026 Profit Sharing Adjustments Verification
+  const sepPeriodPs = psAccount.periods.find(p => p.periodCode === 'Sep-26');
+  assert(sepPeriodPs !== undefined, 'September 2026 (Sep-26) period exists');
+  if (sepPeriodPs) {
+    assert(Math.abs(sepPeriodPs.totalExpense - 41000.00) <= 0.05, `September 2026 Total Adjustments is -₹41,000.00 (found: ₹${sepPeriodPs.totalExpense.toFixed(2)})`);
+    assert(Math.abs(sepPeriodPs.netBalance - (-41000.00)) <= 0.05, `September 2026 Net Amount is -₹41,000.00 (found: ₹${sepPeriodPs.netBalance.toFixed(2)})`);
+    assert(Math.abs(sepPeriodPs.closingBalance - (-13666.67)) <= 0.05, `September 2026 Individual Share (÷3) is -₹13,666.67 (found: ₹${sepPeriodPs.closingBalance.toFixed(2)})`);
+  }
+
+  // 4. Separate Davis, BR, and Sweet Adjustment Records
+  const sepAdjustments = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: psAccount.id,
+      periodCode: 'Sep-26',
+      section: 'PROFIT_ADJUSTMENT',
+      isDeleted: false,
+    }
+  });
+  assert(sepAdjustments.length === 3, `Exactly 3 separate September adjustment entries exist (found: ${sepAdjustments.length})`);
+  const davisAdj = sepAdjustments.find(e => e.category === 'Davis');
+  const brAdj = sepAdjustments.find(e => e.category === 'BR');
+  const sweetAdj = sepAdjustments.find(e => e.category === 'Sweet-9-11-26');
+  assert(davisAdj && Math.abs(davisAdj.amount - (-30000)) <= 0.01, 'Davis adjustment is exactly -₹30,000.00');
+  assert(brAdj && Math.abs(brAdj.amount - (-6000)) <= 0.01, 'BR adjustment is exactly -₹6,000.00');
+  assert(sweetAdj && Math.abs(sweetAdj.amount - (-5000)) <= 0.01, 'Sweet-9-11-26 adjustment is exactly -₹5,000.00');
+
+  // 5. Separate Hemaraj Individual Records (July, Aug, Oct 25)
+  const hemarajRecords = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: psAccount.id,
+      section: 'PARTNER_DRAWING',
+      isDeleted: false,
+    }
+  });
+  assert(hemarajRecords.length === 3, `Exactly 3 separate Hemaraj drawing entries exist (found: ${hemarajRecords.length})`);
+  const hemSum = hemarajRecords.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(hemSum - 46000.00) <= 0.01, `Hemaraj total drawings sum to ₹46,000.00 (35000 + 6000 + 5000) (found: ₹${hemSum.toFixed(2)})`);
+
+  // 6. Cash With Hemaraj Dedicated Ledger Verification
+  const cashEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: psAccount.id,
+      section: 'CASH_HOLDING',
+      isDeleted: false,
+    }
+  });
+  assert(cashEntries.length === 3, `Exactly 3 separate Cash With Hemaraj entries exist (found: ${cashEntries.length})`);
+  const cashTotal = cashEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(cashTotal - 4719.00) <= 0.01, `Cash With Hemaraj total is exactly ₹4,719.00 (4783 + 2036 - 2100) (found: ₹${cashTotal.toFixed(2)})`);
+
+  // 7. Reconciled with Main Bank Balance Row 62
+  const mainBankRow62 = await newPrismaInstance.bankAccountEntry.findFirst({
+    where: {
+      account: { accountSlug: 'bank-balance' },
+      rowIndex: 62,
+      isDeleted: false,
+    }
+  });
+  assert(mainBankRow62 !== null, 'Main Bank Balance contains Row 62 Monthly Profit Sharing reference');
+  if (mainBankRow62) {
+    assert(Math.abs(mainBankRow62.amount - (-41000)) <= 0.01, `Row 62 references 'Profit Sharing'!P9 amount -₹41,000.00 (found: ₹${mainBankRow62.amount})`);
+    assert(mainBankRow62.formulaString === "'Profit Sharing'!P9", "Row 62 formula is 'Profit Sharing'!P9");
+  }
+
+  // 8. Test Dynamic Future Profit Sharing Entry Creation
+  const testFuturePs = await newPrismaInstance.bankAccountEntry.create({
+    data: {
+      accountId: psAccount.id,
+      periodCode: '2026-DEC',
+      entryDate: '2026-12-31',
+      section: 'MONTHLY_PROFIT',
+      category: 'ECO Contribution',
+      particulars: 'December ECO Test Profit',
+      sourceReference: 'ECO Travels',
+      amount: 50000,
+      rawAmount: '50000',
+      paidAmount: 0,
+      receivedAmount: 50000,
+      netAmount: 50000,
+      meta: JSON.stringify({ transactionId: 'PS-TEST-DEC', company: 'ECO Travels' }),
+      isDeleted: false,
+    }
+  });
+  assert(testFuturePs !== null && testFuturePs.amount === 50000, 'Dynamic future Profit Sharing entry created successfully');
+
+  // Clean up test entry
+  await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFuturePs.id } });
+  assert(true, 'Test dynamic Profit Sharing entry cleaned up safely');
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
