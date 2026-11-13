@@ -1547,3 +1547,4 @@ export default function ProfitSharingManagementView() {
     </div>
   );
 }
+

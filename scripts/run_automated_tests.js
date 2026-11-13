@@ -849,6 +849,117 @@ async function runTestSuite() {
   await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFuturePs.id } });
   assert(true, 'Test dynamic Profit Sharing entry cleaned up safely');
 
+  // TEST SUITE 17: Harish GS Account, Hemaraj Employee Advances & Bank Settlement Reconciliation
+  console.log('\n--- TEST SUITE 17: Harish GS Account, Hemaraj Employee Advances & Bank Settlement Reconciliation ---');
+
+  const harishAccount = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'harish-gs' },
+    include: { periods: true }
+  });
+  assert(harishAccount !== null, 'Harish GS BankAccount record exists in database');
+
+  // 1. Verify Hemaraj Employee Advance Entries
+  const hemarajAdvEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: harishAccount.id,
+      section: 'EMPLOYEE_ADVANCE',
+      isDeleted: false,
+    },
+    include: { versions: true },
+    orderBy: { rowIndex: 'asc' }
+  });
+  assert(hemarajAdvEntries.length === 3, `Exactly 3 active Hemaraj Employee Advance entries exist (found: ${hemarajAdvEntries.length})`);
+
+  const julyAdv = hemarajAdvEntries.find(e => e.entryDate === 'July');
+  const augAdv = hemarajAdvEntries.find(e => e.entryDate === 'Aug');
+  const octAdv = hemarajAdvEntries.find(e => e.entryDate === '25-10-2026');
+
+  assert(julyAdv && Math.abs(julyAdv.amount - (-35000)) <= 0.01, 'Hemaraj July advance is exactly -₹35,000.00');
+  assert(augAdv && Math.abs(augAdv.amount - (-6000)) <= 0.01, 'Hemaraj August advance is exactly -₹6,000.00');
+  assert(octAdv && Math.abs(octAdv.amount - (-5000)) <= 0.01, 'Hemaraj 25-10-2026 advance is exactly -₹5,000.00');
+
+  const hemarajAdvTotal = hemarajAdvEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(hemarajAdvTotal - (-46000)) <= 0.01, `Hemaraj total advances sum to exactly -₹46,000.00 (-35000 - 6000 - 5000) (found: ₹${hemarajAdvTotal.toFixed(2)})`);
+
+  // Verify unique transaction IDs and version snapshots
+  const hmrTxn1 = hemarajAdvEntries.some(e => e.meta && e.meta.includes('HMR-ADV-202607-001'));
+  const hmrTxn2 = hemarajAdvEntries.some(e => e.meta && e.meta.includes('HMR-ADV-202608-001'));
+  const hmrTxn3 = hemarajAdvEntries.some(e => e.meta && e.meta.includes('HMR-ADV-202610-001'));
+  assert(hmrTxn1 && hmrTxn2 && hmrTxn3, 'All 3 Hemaraj advance records have distinct unique transaction IDs');
+
+  const allHmrHaveVersions = hemarajAdvEntries.every(e => e.versions && e.versions.length >= 1);
+  assert(allHmrHaveVersions, 'All 3 Hemaraj advance entries contain version history snapshots for audit and revert');
+
+  // 2. Verify Preservation of Existing Records
+  const vehicleEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: harishAccount.id,
+      section: 'VEHICLE_BALANCE',
+      isDeleted: false,
+    }
+  });
+  assert(vehicleEntries.length === 2, `Existing vehicle balance entries preserved (found: ${vehicleEntries.length})`);
+
+  const ka03ap = vehicleEntries.find(e => e.category === 'KA03AP 6182' || e.particulars.includes('6182'));
+  const ka41d = vehicleEntries.find(e => e.category === 'KA41D 6174' || e.particulars.includes('6174'));
+  assert(ka03ap && Math.abs(ka03ap.amount - (-175000)) <= 0.01, 'KA03AP 6182 balance is preserved at -₹1,75,000.00');
+  assert(ka03ap && Math.abs(ka03ap.netAmount - (-5250)) <= 0.01, 'KA03AP 6182 commission (3%) is preserved at -₹5,250.00');
+  assert(ka41d && Math.abs(ka41d.amount - (-250000)) <= 0.01, 'KA41D 6174 balance is preserved at -₹2,50,000.00');
+
+  const directFuelEntries = await newPrismaInstance.bankAccountEntry.findMany({
+    where: {
+      accountId: harishAccount.id,
+      section: 'FUEL_PAYMENT',
+      isDeleted: false,
+    }
+  });
+  assert(directFuelEntries.length === 4, `All 4 existing direct fuel payments preserved (found: ${directFuelEntries.length})`);
+  const directFuelTotal = directFuelEntries.reduce((sum, e) => sum + e.amount, 0);
+  assert(Math.abs(directFuelTotal - (-95000)) <= 0.01, `Direct fuel payments sum to exactly -₹95,000.00 (found: ₹${directFuelTotal.toFixed(2)})`);
+
+  // 3. Verify Consolidated Settlement & Main Bank Balance Row 74
+  const mainBankRow74 = await newPrismaInstance.bankAccountEntry.findFirst({
+    where: {
+      account: { accountSlug: 'bank-balance' },
+      particulars: 'Harish GS - Fuel',
+      isDeleted: false,
+    }
+  });
+  assert(mainBankRow74 !== null, 'Main Bank Balance contains Row 74 Harish GS - Fuel reference');
+  if (mainBankRow74) {
+    assert(Math.abs(mainBankRow74.amount - (-316000)) <= 0.01, `Row 74 references 'Harish GS'!C1 amount -₹3,16,000.00 (found: ₹${mainBankRow74.amount})`);
+    assert(mainBankRow74.formulaString === "'Harish GS'!C1", "Row 74 formula is 'Harish GS'!C1");
+  }
+
+  // Verify exact mathematical formula: C17 (-1,75,000) + C32 (-95,000) + I1 (-46,000) = -3,16,000
+  const mathFormulaCheck = ka03ap.amount + directFuelTotal + hemarajAdvTotal;
+  assert(Math.abs(mathFormulaCheck - (-316000)) <= 0.01, `Mathematical equality C17 + C32 + I1 = -₹3,16,000.00 verified (found: ₹${mathFormulaCheck.toFixed(2)})`);
+
+  // 4. Test Dynamic Future Advance Entry Creation & Cleanup
+  const testFutureAdv = await newPrismaInstance.bankAccountEntry.create({
+    data: {
+      accountId: harishAccount.id,
+      periodCode: '2026-DEC',
+      entryDate: '2026-12-15',
+      section: 'EMPLOYEE_ADVANCE',
+      category: 'Employee Advance',
+      particulars: 'Hemaraj',
+      sourceReference: 'Hemaraj -NT',
+      amount: -2500,
+      rawAmount: '-2500',
+      paidAmount: 0,
+      receivedAmount: 0,
+      netAmount: -2500,
+      meta: JSON.stringify({ transactionId: 'HMR-ADV-TEST-DEC', employeeName: 'Hemaraj' }),
+      isDeleted: false,
+    }
+  });
+  assert(testFutureAdv !== null && testFutureAdv.amount === -2500, 'Dynamic future employee advance entry created successfully');
+
+  // Clean up test entry
+  await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFutureAdv.id } });
+  assert(true, 'Test dynamic employee advance entry cleaned up safely');
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
