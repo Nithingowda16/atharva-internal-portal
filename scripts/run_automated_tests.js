@@ -1071,6 +1071,70 @@ async function runTestSuite() {
   await newPrismaInstance.bankAccountEntry.delete({ where: { id: testFutureExp.id } });
   assert(true, 'Test dynamic expense entry cleaned up safely');
 
+  // --- TEST SUITE 19: ECO Travels Missing-Data Verification & Reusable Import Engine ---
+  console.log('\n--- TEST SUITE 19: ECO Travels Missing-Data Verification & Reusable Import Engine ---');
+  const ecoTravelsAcc = await newPrismaInstance.bankAccount.findUnique({
+    where: { accountSlug: 'eco-travels' },
+    include: {
+      entries: {
+        where: { isDeleted: false },
+        include: { versions: true },
+        orderBy: [{ rowIndex: 'asc' }]
+      }
+    }
+  });
+
+  assert(ecoTravelsAcc !== null, 'ECO Travels BankAccount record exists in database');
+  assert(ecoTravelsAcc.entries.length === 26, `Exactly 26 active entries exist in ECO Travels (found: ${ecoTravelsAcc.entries.length})`);
+
+  // 1. Payments & Expenses Breakdown
+  const ecoPayments = ecoTravelsAcc.entries.filter(e => e.section === 'PAYMENTS');
+  assert(ecoPayments.length === 12, `Total ECO Payments entries count is 12 (found: ${ecoPayments.length})`);
+  const ecoPaymentsTotal = ecoPayments.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(ecoPaymentsTotal - 5035219.25) <= 0.05, `Total ECO Payments sum to ₹50,35,219.25 (found: ₹${ecoPaymentsTotal.toFixed(2)})`);
+
+  const ecoExpenses = ecoTravelsAcc.entries.filter(e => e.section === 'EXPENSES');
+  assert(ecoExpenses.length === 14, `Total ECO Expenses entries count is 14 (found: ${ecoExpenses.length})`);
+  const ecoExpensesTotal = ecoExpenses.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(ecoExpensesTotal - (-5319471.97)) <= 0.05, `Total ECO Expenses sum to -₹53,19,471.97 (found: ₹${ecoExpensesTotal.toFixed(2)})`);
+
+  const ecoNetTotal = ecoTravelsAcc.entries.reduce((s, e) => s + e.amount, 0);
+  assert(Math.abs(ecoNetTotal - (-284252.72)) <= 0.05, `ECO Travels net balance is -₹2,84,252.72 (found: ₹${ecoNetTotal.toFixed(2)})`);
+
+  // 2. Strict Preservation of Row 37 & Row 38 (Held Without Overwrite)
+  const row37 = ecoTravelsAcc.entries.find(e => e.rowIndex === 37);
+  assert(row37 && Math.abs(row37.amount - (-280588.34)) <= 0.01, 'Row 37 (Oct-26 Expense) preserved at -₹2,80,588.34 (Held without overwrite)');
+
+  const row38 = ecoTravelsAcc.entries.find(e => e.rowIndex === 38);
+  assert(row38 && Math.abs(row38.amount - (-16120.00)) <= 0.01, 'Row 38 (Nov-26 Expense) preserved at -₹16,120.00 (Held without overwrite)');
+
+  // 3. Version Snapshots
+  const allEcoHaveVersions = ecoTravelsAcc.entries.every(e => e.versions && e.versions.length >= 1);
+  assert(allEcoHaveVersions, 'All 26 ECO Travels entries contain version history snapshots for audit and revert');
+
+  // 4. Dynamic Future Year / Period Support (2027) & Cleanup
+  const testEcoFuture = await newPrismaInstance.bankAccountEntry.create({
+    data: {
+      accountId: ecoTravelsAcc.id,
+      periodCode: '2027-JAN',
+      entryDate: '2027-01-15',
+      section: 'PAYMENTS',
+      category: 'ECO Travels',
+      particulars: 'Future 2027 Corporate Billing Test',
+      amount: 450000.00,
+      rawAmount: '450000',
+      paidAmount: 0,
+      receivedAmount: 450000.00,
+      netAmount: 450000.00,
+      meta: JSON.stringify({ transactionId: 'ECO-TEST-2027', paymentStatus: 'RECEIVED' }),
+      isDeleted: false,
+    }
+  });
+  assert(testEcoFuture !== null && testEcoFuture.periodCode === '2027-JAN', 'Dynamic future year entry (2027-JAN) created successfully without code changes');
+
+  await newPrismaInstance.bankAccountEntry.delete({ where: { id: testEcoFuture.id } });
+  assert(true, 'Test dynamic future entry cleaned up safely');
+
   await newPrismaInstance.$disconnect();
 
   console.log('\n================================================================');
